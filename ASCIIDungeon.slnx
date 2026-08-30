@@ -1,0 +1,12 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="ASCIIDungeon/ASCIIDungeon.vcxproj" Id="3e355a6f-6c77-4a37-a5e6-0cc1b77cd928">
+    <Build Solution="*|x86" Project="false" />
+  </Project>
+  <Project Path="CraftEngine/CraftEngine.vcxproj" Id="6d373d10-83c0-41e1-b271-09203bbd91cf">
+    <Platform Project="x64" />
+  </Project>
+</Solution>
