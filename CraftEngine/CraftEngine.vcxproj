@@ -73,7 +73,7 @@
 xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)\CraftEngine.lib ..\Lib\ /e /y /i</Command>
+      <Command>xcopy $(OutDir)\CraftEngine_D.lib ..\Lib\ /e /y /i</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -99,7 +99,7 @@ xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
 xcopy ..\Config\* $(OutDir)..\Config\ /e /y /i</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy $(OutDir)\CraftEngine.lib ..\Lib\ /e /y /i</Command>
+      <Command>xcopy $(OutDir)\CraftEngine_D.lib ..\Lib\ /e /y /i</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>

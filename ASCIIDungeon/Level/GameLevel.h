@@ -1,5 +1,6 @@
 #pragma once
 #include <Level/Level.h>
+#include <ETC/Rect.h>
 
 template<typename T>
 class BSPTree;
@@ -21,9 +22,10 @@ private:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
-	void Split(BSPNode<RECT>& parent);
-
+	void Split(BSPNode<Rect>& parent);
+	void SetNeighbor();
+	bool IsNeighbor(const Rect& a, const Rect& b);
 private:
-	BSPTree<RECT>* _bsp;
+	BSPTree<Rect>* _bsp;
 };
 

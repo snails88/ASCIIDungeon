@@ -102,13 +102,17 @@
     <ClCompile Include="Level\GameLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Level\MenuLevel.cpp" />
+    <ClCompile Include="Pathfind\RoomConnect.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="BSP.h" />
+    <ClInclude Include="ETC\BSP.h" />
     <ClInclude Include="Define.h" />
+    <ClInclude Include="ETC\Rect.h" />
+    <ClInclude Include="ETC\Room.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Level\GameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />
+    <ClInclude Include="Pathfind\RoomConnect.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,5 +1,7 @@
-#pragma once
+﻿#pragma once
 #include <vector>
+#include <ETC/Rect.h>
+#include <ETC/Room.h>
 
 template<typename T>
 class BSPNode
@@ -11,6 +13,13 @@ public:
 	BSPNode<T>* GetLeftChild() const { return _left; }
 	BSPNode<T>* GetRightChild() const { return _right; }
 
+	Room* GetRoom() const { return _room; }
+	void AddRoom(const Rect& rect)
+	{
+		_room = new Room;
+		_room->_rect = rect;
+	}
+
 private:
 	BSPNode(const T& data)
 		: _data(data)
@@ -19,6 +28,9 @@ private:
 
 	~BSPNode()
 	{
+		delete _room;
+		_room = nullptr;
+
 		delete _left;
 		_left = nullptr;
 
@@ -31,6 +43,7 @@ private:
 
 private:
 	T _data;
+	Room* _room = nullptr;
 
 	BSPNode<T>* _left = nullptr;
 	BSPNode<T>* _right = nullptr;
