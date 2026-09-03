@@ -10,6 +10,7 @@ namespace Sort
 	{
 		Default,
 		Door,
+		Stairs,
 		Visualize,
 		Monster,
 		Player

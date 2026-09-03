@@ -30,8 +30,8 @@ private:
 private:
 	int _currentIndex = 0;
 
-	Craft::Color _selectedColor = Craft::Color::Green;
-	Craft::Color _unselectedColor = Craft::Color::White;
+	DWORD _selectedColor = Craft::Color::Green;
+	DWORD _unselectedColor = Craft::Color::White;
 
 	std::vector<std::unique_ptr<MenuItem>> _itemList;
 };

@@ -15,7 +15,7 @@ namespace Craft
 		TYPE_DECLARATIONS(Actor, CraftObject)
 
 	public:
-		Actor(const std::string& image = "", const Vector2& position = Vector2::Zero, Color color = Color::White);
+		Actor(const std::string& image = "", const Vector2& position = Vector2::Zero, DWORD color = Color::White);
 		virtual ~Actor();
 
 		// 게임 플레이 이벤트 함수
@@ -57,7 +57,7 @@ namespace Craft
 		bool hasExpired = false;	// 삭제 요청 여부 플래그
 		std::weak_ptr<Level> owner;	// 오너십 - 이 액터를 소유하는 레벨 객체
 		std::string image;			// 화면에 그릴 글자
-		Color color = Color::White;	// 색상
+		DWORD color = Color::White;	// 색상
 		int width = 0;				// 글자길이
 		int sortingOrder = 0;		// 렌더링 순서
 		Vector2 position;			// 위치

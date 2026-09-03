@@ -83,7 +83,7 @@ namespace Craft
 		//SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &info);
 	}
 
-	void Renderer::Submit(const std::string& image, const Vector2& position, Color color, int sortingOrder)
+	void Renderer::Submit(const std::string& image, const Vector2& position, DWORD color, int sortingOrder)
 	{
 		// 렌더 명령 생성 및 값 설정
 		RenderCommand command;
@@ -151,7 +151,7 @@ namespace Craft
 
 				// 2차원 배열에 글자, 속성 설정
 				frame->charInfoArray[index].Char.AsciiChar = command.image[sourceIndex];
-				frame->charInfoArray[index].Attributes = static_cast<DWORD>(command.color);
+				frame->charInfoArray[index].Attributes = command.color;
 				frame->sortingOrderArray[index] = command.sortingOrder;
 			}
 		}
@@ -160,7 +160,7 @@ namespace Craft
 
 		renderQueue.clear();
 
-		SetConsoleTextAttribute(GetCurrentBuffer()->GetBuffer(), static_cast<DWORD>(Color::White));
+		SetConsoleTextAttribute(GetCurrentBuffer()->GetBuffer(), Color::White);
 	}
 
 	void Renderer::Present()

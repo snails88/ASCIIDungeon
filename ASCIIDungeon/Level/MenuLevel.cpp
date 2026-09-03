@@ -1,4 +1,4 @@
-#include "MenuLevel.h"
+﻿#include "MenuLevel.h"
 #include "MenuLevel.h"
 #include <Game/Game.h>
 #include <Input/Input.h>
@@ -74,7 +74,7 @@ void MenuLevel::Draw()
 	const int count = static_cast<int>(_itemList.size());
 	for (int i = 0; i < count; i++)
 	{
-		Color textColor = (i == _currentIndex) ? _selectedColor : _unselectedColor;
+		DWORD textColor = (i == _currentIndex) ? _selectedColor : _unselectedColor;
 
 		Renderer::Get().Submit(_itemList[i]->_text, Vector2(0, 5 + i), textColor);
 	}

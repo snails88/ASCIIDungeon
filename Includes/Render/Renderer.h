@@ -27,7 +27,7 @@ namespace Craft
 		{
 			std::string image;
 			Vector2 position = Vector2::Zero;
-			Color color = Color::White;
+			DWORD color = Color::White;
 			int sortingOrder = -1;	// 클수록 우선순위 높음
 		};
 
@@ -35,7 +35,7 @@ namespace Craft
 		Renderer(const Vector2& screenSize);
 		~Renderer();
 
-		void Submit(const std::string& image, const Vector2& position, Color color = Color::White, int sortingOrder = 0);
+		void Submit(const std::string& image, const Vector2& position, DWORD color = Color::White, int sortingOrder = 0);
 		void Draw();
 
 		static Renderer& Get();

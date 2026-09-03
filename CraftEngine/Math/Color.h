@@ -5,7 +5,7 @@
 
 namespace Craft
 {
-	enum class CRAFT_API Color : WORD
+	enum CRAFT_API Color : DWORD
 	{
 		Red = FOREGROUND_RED,
 		Green = FOREGROUND_GREEN,

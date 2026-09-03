@@ -27,7 +27,7 @@ private:	// 맵 생성 관련 함수들
 	void Split(BSPNode<Rect>& parent);
 	void SetNeighbor();
 	bool IsNeighbor(const Rect& a, const Rect& b);
-	void ConnectRooms();
+	void ConnectRooms(Room*& outEntrance, Room*& outExit);
 	void ConnectPath(std::vector<Room*>& path, int cost = 1);
 	void CreateDoors();
 	bool HasDoor(const Room* const a, const Room* const b) const;
