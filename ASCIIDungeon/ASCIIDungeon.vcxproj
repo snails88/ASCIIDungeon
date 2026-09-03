@@ -98,6 +98,8 @@
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Actor\Cursor.cpp" />
+    <ClCompile Include="Actor\InputManager.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\Stairs.cpp" />
     <ClCompile Include="Game\Game.cpp" />
@@ -107,6 +109,8 @@
     <ClCompile Include="Pathfind\RoomConnect.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Actor\Cursor.h" />
+    <ClInclude Include="Actor\InputManager.h" />
     <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\Stairs.h" />
     <ClInclude Include="ETC\BSP.h" />

@@ -13,6 +13,7 @@ namespace Sort
 		Stairs,
 		Visualize,
 		Monster,
+		Cursor,
 		Player
 	};
 }

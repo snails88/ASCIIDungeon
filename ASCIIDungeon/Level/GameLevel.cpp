@@ -9,6 +9,8 @@
 #include <Pathfind/RoomConnect.h>
 #include <Actor/Player.h>
 #include <Actor/Stairs.h>
+#include <Actor/Cursor.h>
+#include <Actor/InputManager.h>
 
 GameLevel::~GameLevel()
 {
@@ -52,11 +54,13 @@ void GameLevel::OnInitialized()
 	int startPosY = entrance->_rect.top + ((entrance->_rect.bottom - entrance->_rect.top) / 2);
 
 	std::shared_ptr<Player> player = SpawnActor<Player>(Vector2(startPosX, startPosY));
+	std::shared_ptr<Cursor> cursor = SpawnActor<Cursor>(Vector2(startPosX, startPosY));
 
 	startPosX = exit->_rect.left + ((exit->_rect.right - exit->_rect.left) / 2);
 	startPosY = exit->_rect.top + ((exit->_rect.bottom - exit->_rect.top) / 2);
 
 	std::shared_ptr<Stairs> stairs = SpawnActor<Stairs>(Vector2(startPosX, startPosY));
+	std::shared_ptr<InputManager> inputManager = SpawnActor<InputManager>();
 }
 
 void GameLevel::Tick(float deltaTime)

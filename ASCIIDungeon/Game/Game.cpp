@@ -22,16 +22,11 @@ void Game::ToggleMenu()
 void Game::StartGame()
 {
 	if (!isGameOver)
-	{
-		if (levelList[(int)State::GamePlay])
-			static_pointer_cast<GameLevel>(levelList[(int)State::GamePlay])->ResetActors();
 		GameOver();
-	}
 
 	isGameOver = false;
 
-	if (levelList[(int)State::GamePlay] == nullptr)
-		levelList[(int)State::GamePlay] = std::make_shared<GameLevel>();
+	levelList[(int)State::GamePlay] = std::make_shared<GameLevel>();
 	state = State::GamePlay;
 	mainLevel = levelList[(int)state];
 }
@@ -40,6 +35,10 @@ void Game::GameOver()
 {
 	state = State::Menu;
 	mainLevel = levelList[(int)state];
+
+
+
+	levelList[(int)State::GamePlay].reset();
 }
 
 void Game::RequestGameOver()
