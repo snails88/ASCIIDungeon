@@ -56,5 +56,8 @@
     <ClInclude Include="ETC\Rect.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="ETC\Door.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

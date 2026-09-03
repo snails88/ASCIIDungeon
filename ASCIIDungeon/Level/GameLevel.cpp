@@ -42,6 +42,7 @@ void GameLevel::OnInitialized()
 	Split(*(_bsp->GetRoot()));
  	SetNeighbor();
 	ConnectRooms();
+	CreateDoors();
 }
 
 void GameLevel::Tick(float deltaTime)
@@ -63,28 +64,34 @@ void GameLevel::Draw()
 	if (!hasInitialized)
 		return;
 
-	for (int i = 0; i < _connectedRooms.size(); i++)
+	for (size_t i = 0; i < _connectedRooms.size(); i++)
 	{
 		Rect rect = _connectedRooms[i]->_rect;
 
 		std::string str = "";
 		for (int j = rect.left; j <= rect.right; j++)
 		{
-			str += "#";
+			str += " ";
 		}
-		Renderer::Get().Submit(str, Vector2(rect.left, rect.top));
-		Renderer::Get().Submit(str, Vector2(rect.left, rect.bottom));
-		std::string dotStr = "#";
+		Renderer::Get().Submit(str, Vector2(rect.left, rect.top), Color::B_White);
+		Renderer::Get().Submit(str, Vector2(rect.left, rect.bottom), Color::B_White);
+		
+		std::string dotStr = "";
 		for (int j = rect.left + 1; j <= rect.right - 1; j++)
 		{
-			dotStr += ".";
+			dotStr += " ";
 		}
-		dotStr += "#";
+
 		for (int j = rect.top + 1; j <= rect.bottom - 1; j++)
 		{
-			Renderer::Get().Submit(dotStr, Vector2(rect.left, j));
+			Renderer::Get().Submit(" ", Vector2(rect.left, j), Color::B_White);
+			Renderer::Get().Submit(" ", Vector2(rect.right, j), Color::B_White);
+			Renderer::Get().Submit(dotStr, Vector2(rect.left + 1, j), Color::B_GRAY);
 		}
 	}
+
+	for (size_t i = 0; i < _doors.size(); i++)
+		Renderer::Get().Submit(" " , _doors[i]._position, Color::B_Yellow, Sort::SortingOrder::Door);
 }
 
 void GameLevel::Split(BSPNode<Rect>& parent)
@@ -275,4 +282,69 @@ void GameLevel::ConnectPath(std::vector<Room*>& path, int cost)
 			}
 		}
 	}
+}
+
+void GameLevel::CreateDoors()
+{
+	for (size_t i = 0; i < _connectedRooms.size(); i++)
+	{
+		// 최종 방들에서 연결된 방들 순회하며 문 만들기
+		for (size_t j = 0; j < _connectedRooms[i]->_connected.size(); j++)
+		{
+			Room* current = _connectedRooms[i]->_connected[j];
+
+			if (HasDoor(_connectedRooms[i], current))
+				continue;
+
+			bool isHorizonal = false;
+			int pos = 0;
+			Vector2 doorPos = Vector2::Zero;
+
+			if (_connectedRooms[i]->_rect.left == current->_rect.right ||
+				_connectedRooms[i]->_rect.right == current->_rect.left)
+			{
+				if (_connectedRooms[i]->_rect.left == current->_rect.right)
+					pos = _connectedRooms[i]->_rect.left;
+				else
+					pos = _connectedRooms[i]->_rect.right;
+
+				isHorizonal = true;
+			}
+			else
+			{
+				if (_connectedRooms[i]->_rect.top == current->_rect.bottom)
+					pos = _connectedRooms[i]->_rect.top;
+				else
+					pos = _connectedRooms[i]->_rect.bottom;
+			}
+				
+			int a = 0, b = 0;
+
+			if (isHorizonal)
+			{
+				a = max(_connectedRooms[i]->_rect.top, current->_rect.top);
+				b = min(_connectedRooms[i]->_rect.bottom, current->_rect.bottom);
+				doorPos = Vector2(pos, a + ((b - a) / 2));
+			}
+			else
+			{
+				a = max(_connectedRooms[i]->_rect.left, current->_rect.left);
+				b = min(_connectedRooms[i]->_rect.right, current->_rect.right);
+				doorPos = Vector2(a + ((b - a) / 2), pos);
+			}
+			auto parents = std::make_pair(_connectedRooms[i], current);
+			_doors.emplace_back(Door{ parents, doorPos });
+		}
+	}
+}
+
+bool GameLevel::HasDoor(const Room* const a, const Room* const b) const
+{
+	for (size_t i = 0; i < _doors.size(); i++)
+	{
+		const auto& parents = _doors[i]._parents;
+		if ((parents.first == a && parents.second == b) || (parents.first == b && parents.second == a))
+			return true;
+	}
+	return false;
 }

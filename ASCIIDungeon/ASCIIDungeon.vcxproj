@@ -107,6 +107,7 @@
   <ItemGroup>
     <ClInclude Include="ETC\BSP.h" />
     <ClInclude Include="Define.h" />
+    <ClInclude Include="ETC\Door.h" />
     <ClInclude Include="ETC\Rect.h" />
     <ClInclude Include="ETC\Room.h" />
     <ClInclude Include="Game\Game.h" />
