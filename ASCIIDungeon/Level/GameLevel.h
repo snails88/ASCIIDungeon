@@ -31,5 +31,6 @@ private:	// 맵 생성 관련 함수들
 	void ConnectPath(std::vector<Room*>& path, int cost = 1);
 private:
 	BSPTree<Rect>* _bsp;
+	std::vector<Room*> _connectedRooms;
 };
 

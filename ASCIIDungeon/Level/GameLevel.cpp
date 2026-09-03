@@ -37,6 +37,7 @@ void GameLevel::OnInitialized()
 	rect.bottom = engine.GetHeight() - 1;
 	
 	_bsp = new BSPTree<Rect>(rect);
+	_connectedRooms.reserve(MIN_ROOM_COUNT);
 
 	Split(*(_bsp->GetRoot()));
  	SetNeighbor();
@@ -59,17 +60,12 @@ void GameLevel::Draw()
 {
 	super::Draw();
 
-	std::vector<BSPNode<Rect>*>& leaves = _bsp->GetLeaves();
-
 	if (!hasInitialized)
 		return;
 
-	for (int i = 0; i < leaves.size(); i++)
+	for (int i = 0; i < _connectedRooms.size(); i++)
 	{
-		if (leaves[i]->GetRoom()->_connected.size() == 0)
-			continue;
-
-		Rect rect = leaves[i]->GetData();
+		Rect rect = _connectedRooms[i]->_rect;
 
 		std::string str = "";
 		for (int j = rect.left; j <= rect.right; j++)
@@ -98,7 +94,7 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 
 	int equalWidthSplit = 0;
 
-	if (width == height)
+	if (width == height * 2)
 	{
 		equalWidthSplit = Util::RandomRange(0, 1);
 	}
@@ -109,7 +105,7 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 		parent.AddRoom(parent.GetData());
 		return;
 	}
-	else if (width > height || (width == height && equalWidthSplit))
+	else if (width > height * 2 || (width == height * 2 && equalWidthSplit))
 	{
 		float widthf = static_cast<float>(width);
 
@@ -126,7 +122,7 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 		Split(*leftChild);
 		Split(*rightChild);
 	}
-	else if (height > width || (width == height && !equalWidthSplit))
+	else if (height * 2 > width || (width == height * 2 && !equalWidthSplit))
 	{
 		float heightf = static_cast<float>(height);
 
@@ -201,7 +197,7 @@ void GameLevel::ConnectRooms()
 		rc.ConnectRooms(entrance, exit, path);
 	} while (path.size() < MIN_PATH_SIZE);
 
-	for (int i = 0; i < leaves.size(); i++)
+	for (size_t i = 0; i < leaves.size(); i++)
 		leaves[i]->GetRoom()->_cost = 1;
 
 	ConnectPath(path, 100);
@@ -213,6 +209,46 @@ void GameLevel::ConnectRooms()
 	rc.ConnectRooms(entrance, exit, path);
 
 	ConnectPath(path);
+
+	for (size_t i = 0; i < leaves.size(); i++)
+	{
+		if (leaves[i]->GetRoom()->_connected.size() > 0)
+			_connectedRooms.emplace_back(leaves[i]->GetRoom());
+	}
+
+	int size = _connectedRooms.size();	// 기존 연결된 방에서만 추가 방 붙이는용
+
+	if (size < MIN_ROOM_COUNT)
+	{
+		while (_connectedRooms.size() != MIN_ROOM_COUNT)
+		{
+			int randIndex = -1, randIndex2 = -1;
+			Room* current = nullptr;
+			Room* candidate = nullptr;
+			
+			do
+			{
+				randIndex = Util::RandomRange(0, size - 1);
+				current = _connectedRooms[randIndex];
+				randIndex2 = Util::RandomRange(0, current->_neighbors.size() - 1);
+				candidate = current->_neighbors[randIndex2];
+
+				for (Room* room : _connectedRooms)
+				{
+					if (room == candidate)
+					{
+						randIndex = -1;
+						randIndex2 = -1;
+					}
+				}
+
+			} while ( !(randIndex >= 0 && randIndex2 >= 0) );
+
+			current->_connected.emplace_back(candidate);
+			candidate->_connected.emplace_back(current);
+			_connectedRooms.emplace_back(candidate);
+		}
+	}
 }
 
 void GameLevel::ConnectPath(std::vector<Room*>& path, int cost)
