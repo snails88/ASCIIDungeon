@@ -33,6 +33,8 @@ bool RoomConnect::ConnectRooms(Room*& entrance, Room*& exit, std::vector<Room*>&
         if (current->_room == exit)
         {
             ConstructPath(current, outPath);
+            _openList.clear();
+            _closedList.clear();
             return true;
         }
 

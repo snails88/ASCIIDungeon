@@ -1,6 +1,7 @@
-#pragma once
+﻿#pragma once
 #include <Level/Level.h>
 #include <ETC/Rect.h>
+#include <ETC/Room.h>
 
 template<typename T>
 class BSPTree;
@@ -22,9 +23,12 @@ private:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
+private:	// 맵 생성 관련 함수들
 	void Split(BSPNode<Rect>& parent);
 	void SetNeighbor();
 	bool IsNeighbor(const Rect& a, const Rect& b);
+	void ConnectRooms();
+	void ConnectPath(std::vector<Room*>& path, int cost = 1);
 private:
 	BSPTree<Rect>* _bsp;
 };

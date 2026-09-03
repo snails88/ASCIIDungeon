@@ -40,70 +40,7 @@ void GameLevel::OnInitialized()
 
 	Split(*(_bsp->GetRoot()));
  	SetNeighbor();
-	
-	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
-
-	RoomConnect rc;
-	std::vector<Room*> path;
-	int randEntrance = 0;
-	int randExit = 0;
-	Room* entrance = nullptr;
-	Room* exit = nullptr;
-	do
-	{
-		path.clear();
-		randEntrance = Util::RandomRange(0, leaves.size() - 1);
-		randExit = Util::RandomRange(0, leaves.size() - 1);
-		entrance = leaves[randEntrance]->GetRoom();
-		exit = leaves[randExit]->GetRoom();
-		rc.ConnectRooms(entrance, exit, path);
-	} while (path.size() < MIN_PATH_SIZE);
-
-	for (int i = 0; i < path.size() - 1; i++)
-	{
-		for (int j = 0; j < leaves.size(); j++)
-		{
-			if (path[i] == leaves[j]->GetRoom())
-			{
-				std::vector<Room*>& connected = leaves[j]->GetRoom()->_connected;
-
-				auto iter = std::find(connected.begin(), connected.end(), path[i + 1]);
-
-				if (iter != connected.end())
-					continue;
-
-				connected.emplace_back(path[i + 1]);
-				path[i + 1]->_connected.emplace_back(leaves[j]->GetRoom());
-				leaves[j]->GetRoom()->_cost = 100;
-				break;
-			}
-		}
-	}
-
-	path.clear();
-	entrance = leaves[randEntrance]->GetRoom();
-	exit = leaves[randExit]->GetRoom();
-	rc.ConnectRooms(entrance, exit, path);
-
-	for (int i = 0; i < path.size() - 1; i++)
-	{
-		for (int j = 0; j < leaves.size(); j++)
-		{
-			if (path[i] == leaves[j]->GetRoom())
-			{
-				std::vector<Room*>& connected = leaves[j]->GetRoom()->_connected;
-
-				auto iter = std::find(connected.begin(), connected.end(), path[i + 1]);
-
-				if (iter != connected.end())
-					continue;
-
-				connected.emplace_back(path[i + 1]);
-				path[i + 1]->_connected.emplace_back(leaves[j]->GetRoom());
-				break;
-			}
-		}
-	}
+	ConnectRooms();
 }
 
 void GameLevel::Tick(float deltaTime)
@@ -242,4 +179,64 @@ bool GameLevel::IsNeighbor(const Rect& a, const Rect& b)
 		(min(a.right, b.right) - max(a.left, b.left)) >= 3;
 
 	return horizontal || vertical;
+}
+
+void GameLevel::ConnectRooms()
+{
+	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
+
+	RoomConnect rc;
+	std::vector<Room*> path;
+	int randEntrance = 0;
+	int randExit = 0;
+	Room* entrance = nullptr;
+	Room* exit = nullptr;
+	do
+	{
+		path.clear();
+		randEntrance = Util::RandomRange(0, leaves.size() - 1);
+		randExit = Util::RandomRange(0, leaves.size() - 1);
+		entrance = leaves[randEntrance]->GetRoom();
+		exit = leaves[randExit]->GetRoom();
+		rc.ConnectRooms(entrance, exit, path);
+	} while (path.size() < MIN_PATH_SIZE);
+
+	for (int i = 0; i < leaves.size(); i++)
+		leaves[i]->GetRoom()->_cost = 1;
+
+	ConnectPath(path, 100);
+
+	path.clear();
+
+	entrance = leaves[randEntrance]->GetRoom();
+	exit = leaves[randExit]->GetRoom();
+	rc.ConnectRooms(entrance, exit, path);
+
+	ConnectPath(path);
+}
+
+void GameLevel::ConnectPath(std::vector<Room*>& path, int cost)
+{
+	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
+
+	for (int i = 0; i < path.size() - 1; i++)
+	{
+		for (int j = 0; j < leaves.size(); j++)
+		{
+			if (path[i] == leaves[j]->GetRoom())
+			{
+				std::vector<Room*>& connected = leaves[j]->GetRoom()->_connected;
+
+				auto iter = std::find(connected.begin(), connected.end(), path[i + 1]);
+
+				if (iter != connected.end())
+					continue;
+
+				connected.emplace_back(path[i + 1]);
+				path[i + 1]->_connected.emplace_back(leaves[j]->GetRoom());
+				leaves[j]->GetRoom()->_cost = cost;
+				break;
+			}
+		}
+	}
 }
