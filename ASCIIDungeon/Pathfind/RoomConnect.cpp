@@ -10,7 +10,7 @@ RoomConnect::~RoomConnect()
     Clear();
 }
 
-bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outPath)
+bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outPath, bool isConnected)
 {
     Clear();
 
@@ -33,8 +33,8 @@ bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector
         if (current->_room == exit)
         {
             ConstructPath(current, outPath);
-            _openList.clear();
-            _closedList.clear();
+            ClearCost();
+            Clear();
             return true;
         }
 
@@ -56,9 +56,11 @@ bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector
 
         current = &_closedList.back();
 
-        for (int i = 0; i < current->_room->_neighbors.size(); i++)
+        std::vector<RoomInfo*>& near = isConnected ? current->_room->_connected : current->_room->_neighbors;
+
+        for (int i = 0; i < near.size(); i++)
         {
-            RoomInfo* room = current->_room->_neighbors[i];
+            RoomInfo* room = near[i];
 
             if (IsInClosedList(room))
                 continue;
@@ -84,6 +86,8 @@ bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector
         }
     }
 
+    ClearCost();
+    Clear();
     return false;
 }
 
@@ -96,6 +100,15 @@ void RoomConnect::ConstructPath(Node* destination, std::vector<RoomInfo*>& outPa
         current = current->_parent;
     }
     std::reverse(outPath.begin(), outPath.end());
+}
+
+void RoomConnect::ClearCost()
+{
+    for (size_t i = 0; i < _openList.size(); i++)
+        _openList[i]._room->_cost = 1;
+
+    for (size_t i = 0; i < _closedList.size(); i++)
+        _closedList[i]._room->_cost = 1;
 }
 
 void RoomConnect::Clear()
@@ -128,4 +141,12 @@ Node* RoomConnect::FindOpenNode(const RoomInfo* const room)
     }
 
     return nullptr;
+}
+
+RoomConnect& RoomConnect::Get()
+{
+    if (!_instance)
+        _instance = std::make_unique<RoomConnect>();
+
+    return *_instance;
 }

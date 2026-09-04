@@ -89,5 +89,8 @@
     <ClInclude Include="Actor\Room.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="LeakCheck.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

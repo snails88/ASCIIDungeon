@@ -36,8 +36,6 @@ void Game::GameOver()
 	state = State::Menu;
 	mainLevel = levelList[(int)state];
 
-
-
 	levelList[(int)State::GamePlay].reset();
 }
 

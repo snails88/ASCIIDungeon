@@ -7,7 +7,7 @@ using namespace Craft;
 Player::Player(const Vector2& pos)
 	: super("P", pos)
 {
-	color = Color::B_GRAY | Color::Red;
+	color = Color::B_White | Color::Red;
 	sortingOrder = Sort::Player;
 }
 

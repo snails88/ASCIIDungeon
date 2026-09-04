@@ -25,6 +25,21 @@ void GameLevel::ResetActors()
 	}
 }
 
+RoomInfo* const GameLevel::FindRoom(const Craft::Vector2& pos) const
+{
+	for (size_t i = 0; i < _connectedRooms.size(); i++)
+	{
+		const Rect& current = _connectedRooms[i]->_rect;
+
+		if (pos.x >= current._left && pos.x <= current._right &&
+			pos.y >= current._top && pos.y <= current._bottom)
+			return _connectedRooms[i];
+	}
+
+	return nullptr;
+}
+
+
 void GameLevel::OnInitialized()
 {
 	super::OnInitialized();
@@ -69,10 +84,10 @@ void GameLevel::OnInitialized()
 		for (size_t j = 0; j < _connectedRooms.size(); j++)
 		{
 			if (_doors[i]._parents.first == _connectedRooms[j])
-				_rooms[i].lock()->AddDoor(_doors[i]._position);
+				_rooms[j].lock()->AddDoor(_doors[i]._position);
 
 			if (_doors[i]._parents.second == _connectedRooms[j])
-				_rooms[i].lock()->AddDoor(_doors[i]._position);
+				_rooms[j].lock()->AddDoor(_doors[i]._position);
 		}
 	}
 }
@@ -133,7 +148,7 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 	{
 		float heightf = static_cast<float>(height);
 
-		int randSplit = static_cast<int>(Util::RandomRange(heightf * 0.3f, heightf * 0.7f));
+		int randSplit = static_cast<int>(Util::RandomRange(heightf * 0.4f, heightf * 0.6f));
 
 		Rect rectLeft = parent.GetData();
 		rectLeft._bottom = rectLeft._top + randSplit;
@@ -188,7 +203,7 @@ void GameLevel::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 {
 	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
 
-	RoomConnect rc;
+	RoomConnect& rc = RoomConnect::Get();
 	std::vector<RoomInfo*> path;
 	int randEntrance = 0;
 	int randExit = 0;
@@ -201,11 +216,8 @@ void GameLevel::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 		randExit = Util::RandomRange(0, static_cast<int>(leaves.size()) - 1);
 		entrance = leaves[randEntrance]->GetRoom();
 		exit = leaves[randExit]->GetRoom();
-		rc.ConnectRooms(entrance, exit, path);
+		rc.ConnectRooms(entrance, exit, path, false);
 	} while (path.size() < MIN_PATH_SIZE);
-
-	for (size_t i = 0; i < leaves.size(); i++)
-		leaves[i]->GetRoom()->_cost = 1;
 
 	ConnectPath(path, 100);
 
@@ -213,7 +225,7 @@ void GameLevel::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 
 	entrance = leaves[randEntrance]->GetRoom();
 	exit = leaves[randExit]->GetRoom();
-	rc.ConnectRooms(entrance, exit, path);
+	rc.ConnectRooms(entrance, exit, path, false);
 
 	ConnectPath(path);
 
@@ -351,3 +363,4 @@ bool GameLevel::HasDoor(const RoomInfo* const a, const RoomInfo* const b) const
 	}
 	return false;
 }
+

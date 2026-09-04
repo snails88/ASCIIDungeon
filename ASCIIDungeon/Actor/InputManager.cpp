@@ -1,9 +1,10 @@
 #include "InputManager.h"
 #include <Game/Game.h>
-#include <Level/Level.h>
+#include <Level/GameLevel.h>
 #include <Actor/Player.h>
 #include <Actor/Cursor.h>
 #include <Input/Input.h>
+#include <PathFind/RoomConnect.h>
 
 using namespace Craft;
 
@@ -71,6 +72,21 @@ void InputManager::Tick(float deltaTime)
 			_cursor->ChangeImage(" ", Color::B_Cyan);
 
 		_pressedTime = 0.f;
+	}
+
+	if (Input::Get().GetKeyDown(VK_RETURN))
+	{
+		std::weak_ptr<GameLevel> level = Cast<GameLevel>(_cursor->GetOwner());
+
+		RoomInfo* currentRoom = level.lock()->FindRoom(_player->GetPosition());
+		RoomInfo* goalRoom = level.lock()->FindRoom(_cursor->GetPosition());
+
+		if (currentRoom && goalRoom)
+		{
+			std::vector<RoomInfo*> path;
+
+			RoomConnect::Get().ConnectRooms(currentRoom, goalRoom, path);
+		}
 	}
 
 }

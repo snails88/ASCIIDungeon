@@ -20,6 +20,8 @@ public:
 	virtual ~GameLevel();
 
 	void ResetActors();
+
+	RoomInfo* const FindRoom(const Craft::Vector2& pos) const;
 private:
 	virtual void OnInitialized() override;
 	virtual void Tick(float deltaTime) override;
@@ -33,6 +35,7 @@ private:	// 맵 생성 관련 함수들
 	void ConnectPath(std::vector<RoomInfo*>& path, int cost = 1);
 	void CreateDoors();
 	bool HasDoor(const RoomInfo* const a, const RoomInfo* const b) const;
+	
 private:
 	BSPTree<Rect>* _bsp;
 	std::vector<RoomInfo*> _connectedRooms;		// 연결된 방 정보들

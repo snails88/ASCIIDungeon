@@ -59,6 +59,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>..\Includes\;$(ProjectDir)\;</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>LeakCheck.h</ForcedIncludeFiles>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -121,6 +122,7 @@
     <ClInclude Include="ETC\Rect.h" />
     <ClInclude Include="ETC\RoomInfo.h" />
     <ClInclude Include="Game\Game.h" />
+    <ClInclude Include="LeakCheck.h" />
     <ClInclude Include="Level\GameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />
     <ClInclude Include="Pathfind\RoomConnect.h" />
