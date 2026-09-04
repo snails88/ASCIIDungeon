@@ -4,7 +4,7 @@
 #include <Actor/Player.h>
 #include <Actor/Cursor.h>
 #include <Input/Input.h>
-#include <PathFind/RoomConnect.h>
+#include <PathFind/Dijkstra.h>
 
 using namespace Craft;
 
@@ -83,9 +83,9 @@ void InputManager::Tick(float deltaTime)
 
 		if (currentRoom && goalRoom)
 		{
-			std::vector<RoomInfo*> path;
+			std::vector<RoomInfo*> route;
 
-			RoomConnect::Get().ConnectRooms(currentRoom, goalRoom, path);
+			Dijkstra::Get().FindRoute(currentRoom, goalRoom, route);
 		}
 	}
 

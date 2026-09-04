@@ -1,16 +1,16 @@
-#include "RoomConnect.h"
+#include "Dijkstra.h"
 #include <ETC/RoomInfo.h>
 
-RoomConnect::RoomConnect()
+Dijkstra::Dijkstra()
 {
 }
 
-RoomConnect::~RoomConnect()
+Dijkstra::~Dijkstra()
 {
     Clear();
 }
 
-bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outPath, bool isConnected)
+bool Dijkstra::FindRoute(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outRoute, bool isConnected)
 {
     Clear();
 
@@ -32,7 +32,7 @@ bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector
 
         if (current->_room == exit)
         {
-            ConstructPath(current, outPath);
+            ConstructRoute(current, outRoute);
             ClearCost();
             Clear();
             return true;
@@ -91,18 +91,18 @@ bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector
     return false;
 }
 
-void RoomConnect::ConstructPath(Node* destination, std::vector<RoomInfo*>& outPath)
+void Dijkstra::ConstructRoute(Node* destination, std::vector<RoomInfo*>& outRoute)
 {
     Node* current = destination;
     while (current)
     {
-        outPath.emplace_back(current->_room);
+        outRoute.emplace_back(current->_room);
         current = current->_parent;
     }
-    std::reverse(outPath.begin(), outPath.end());
+    std::reverse(outRoute.begin(), outRoute.end());
 }
 
-void RoomConnect::ClearCost()
+void Dijkstra::ClearCost()
 {
     for (size_t i = 0; i < _openList.size(); i++)
         _openList[i]._room->_cost = 1;
@@ -111,13 +111,13 @@ void RoomConnect::ClearCost()
         _closedList[i]._room->_cost = 1;
 }
 
-void RoomConnect::Clear()
+void Dijkstra::Clear()
 {
     _openList.clear();
     _closedList.clear();
 }
 
-bool RoomConnect::IsInClosedList(const RoomInfo* const room) const
+bool Dijkstra::IsInClosedList(const RoomInfo* const room) const
 {
     for (const Node& n : _closedList)
     {
@@ -127,7 +127,7 @@ bool RoomConnect::IsInClosedList(const RoomInfo* const room) const
     return false;
 }
 
-Node* RoomConnect::FindOpenNode(const RoomInfo* const room)
+Node* Dijkstra::FindOpenNode(const RoomInfo* const room)
 {
     auto iter = _openList.begin();
     auto iter_end = _openList.end();
@@ -143,10 +143,10 @@ Node* RoomConnect::FindOpenNode(const RoomInfo* const room)
     return nullptr;
 }
 
-RoomConnect& RoomConnect::Get()
+Dijkstra& Dijkstra::Get()
 {
     if (!_instance)
-        _instance = std::make_unique<RoomConnect>();
+        _instance = std::make_unique<Dijkstra>();
 
     return *_instance;
 }

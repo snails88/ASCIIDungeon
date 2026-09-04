@@ -4,7 +4,7 @@
 #include <ETC/BSP.h>
 #include <Define.h>
 #include <Util/Util.h>
-#include <Pathfind/RoomConnect.h>
+#include <Pathfind/Dijkstra.h>
 #include <Actor/Player.h>
 #include <Actor/Stairs.h>
 #include <Actor/Cursor.h>
@@ -203,31 +203,31 @@ void GameLevel::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 {
 	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
 
-	RoomConnect& rc = RoomConnect::Get();
-	std::vector<RoomInfo*> path;
+	Dijkstra& d = Dijkstra::Get();
+	std::vector<RoomInfo*> route;
 	int randEntrance = 0;
 	int randExit = 0;
 	RoomInfo* entrance = nullptr;
 	RoomInfo* exit = nullptr;
 	do
 	{
-		path.clear();
+		route.clear();
 		randEntrance = Util::RandomRange(0, static_cast<int>(leaves.size()) - 1);
 		randExit = Util::RandomRange(0, static_cast<int>(leaves.size()) - 1);
 		entrance = leaves[randEntrance]->GetRoom();
 		exit = leaves[randExit]->GetRoom();
-		rc.ConnectRooms(entrance, exit, path, false);
-	} while (path.size() < MIN_PATH_SIZE);
+		d.FindRoute(entrance, exit, route, false);
+	} while (route.size() < MIN_PATH_SIZE);
 
-	ConnectPath(path, 100);
+	ConnectPath(route, 100);
 
-	path.clear();
+	route.clear();
 
 	entrance = leaves[randEntrance]->GetRoom();
 	exit = leaves[randExit]->GetRoom();
-	rc.ConnectRooms(entrance, exit, path, false);
+	d.FindRoute(entrance, exit, route, false);
 
-	ConnectPath(path);
+	ConnectPath(route);
 
 	for (size_t i = 0; i < leaves.size(); i++)
 	{
