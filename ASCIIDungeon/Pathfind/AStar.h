@@ -3,6 +3,7 @@
 #include <vector>
 #include <memory>
 #include <Math/Vector2.h>
+#include <ETC/Rect.h>
 
 using namespace Craft;
 
