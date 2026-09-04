@@ -108,6 +108,7 @@
     <ClCompile Include="Level\GameLevel.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Level\MenuLevel.cpp" />
+    <ClCompile Include="PathFind\AStar.cpp" />
     <ClCompile Include="Pathfind\Dijkstra.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -125,6 +126,7 @@
     <ClInclude Include="LeakCheck.h" />
     <ClInclude Include="Level\GameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />
+    <ClInclude Include="PathFind\AStar.h" />
     <ClInclude Include="Pathfind\Dijkstra.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

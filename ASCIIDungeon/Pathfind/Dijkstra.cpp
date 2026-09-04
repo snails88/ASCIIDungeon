@@ -127,7 +127,7 @@ bool Dijkstra::IsInClosedList(const RoomInfo* const room) const
     return false;
 }
 
-Node* Dijkstra::FindOpenNode(const RoomInfo* const room)
+Dijkstra::Node* Dijkstra::FindOpenNode(const RoomInfo* const room)
 {
     auto iter = _openList.begin();
     auto iter_end = _openList.end();
