@@ -101,6 +101,7 @@
     <ClCompile Include="Actor\Cursor.cpp" />
     <ClCompile Include="Actor\InputManager.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
+    <ClCompile Include="Actor\Room.cpp" />
     <ClCompile Include="Actor\Stairs.cpp" />
     <ClCompile Include="Game\Game.cpp" />
     <ClCompile Include="Level\GameLevel.cpp" />
@@ -112,12 +113,13 @@
     <ClInclude Include="Actor\Cursor.h" />
     <ClInclude Include="Actor\InputManager.h" />
     <ClInclude Include="Actor\Player.h" />
+    <ClInclude Include="Actor\Room.h" />
     <ClInclude Include="Actor\Stairs.h" />
     <ClInclude Include="ETC\BSP.h" />
     <ClInclude Include="Define.h" />
     <ClInclude Include="ETC\Door.h" />
     <ClInclude Include="ETC\Rect.h" />
-    <ClInclude Include="ETC\Room.h" />
+    <ClInclude Include="ETC\RoomInfo.h" />
     <ClInclude Include="Game\Game.h" />
     <ClInclude Include="Level\GameLevel.h" />
     <ClInclude Include="Level\MenuLevel.h" />

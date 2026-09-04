@@ -42,6 +42,9 @@
     <ClCompile Include="Actor\InputManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="Actor\Room.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Game\Game.h">
@@ -62,7 +65,7 @@
     <ClInclude Include="Pathfind\RoomConnect.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="ETC\Room.h">
+    <ClInclude Include="ETC\RoomInfo.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="ETC\Rect.h">
@@ -81,6 +84,9 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Actor\InputManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Actor\Room.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

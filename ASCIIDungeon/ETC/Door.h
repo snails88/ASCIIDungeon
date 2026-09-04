@@ -1,9 +1,9 @@
 #pragma once
-#include "Room.h"
+#include <ETC/RoomInfo.h>
 #include <Math/Vector2.h>
 
 struct Door
 {
-	std::pair<Room*, Room*> _parents;
+	std::pair<RoomInfo*, RoomInfo*> _parents;
 	Craft::Vector2 _position;
 };

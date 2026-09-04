@@ -64,7 +64,12 @@ void InputManager::Tick(float deltaTime)
 		if (newPos.y > _game->GetHeight() - 1)
 			newPos.y = _game->GetHeight() - 1;
 		_cursor->SetPosition(newPos);
-		
+
+		if (_cursor->GetPosition() == _player->GetPosition())
+			_cursor->ChangeImage("P", Color::B_Cyan | Color::Magenta);
+		else
+			_cursor->ChangeImage(" ", Color::B_Cyan);
+
 		_pressedTime = 0.f;
 	}
 

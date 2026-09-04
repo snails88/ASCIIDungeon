@@ -4,7 +4,7 @@
 using namespace Craft;
 
 Cursor::Cursor(const Craft::Vector2& pos)
-	: super(" ", pos, Color::B_Cyan)
+	: super("P", pos, Color::B_Cyan | Color::Magenta)
 {
 	sortingOrder = Sort::Cursor;
 }

@@ -1,16 +1,15 @@
-﻿#include <string>
-#include <algorithm>
+﻿#include <algorithm>
 #include "GameLevel.h"
 #include <Game/Game.h>
 #include <ETC/BSP.h>
 #include <Define.h>
 #include <Util/Util.h>
-#include <Render/Renderer.h>
 #include <Pathfind/RoomConnect.h>
 #include <Actor/Player.h>
 #include <Actor/Stairs.h>
 #include <Actor/Cursor.h>
 #include <Actor/InputManager.h>
+#include <Actor/Room.h>
 
 GameLevel::~GameLevel()
 {
@@ -35,32 +34,47 @@ void GameLevel::OnInitialized()
 	Game& engine = static_cast<Game&>(Engine::Get());
 
 	Rect rect;
-	rect.left = 0;
-	rect.right = engine.GetWidth() - 1;
-	rect.top = 0;
-	rect.bottom = engine.GetHeight() - 1;
+	rect._left = 0;
+	rect._right = engine.GetWidth() - 1;
+	rect._top = 0;
+	rect._bottom = engine.GetHeight() - 1;
 	
 	_bsp = new BSPTree<Rect>(rect);
 	_connectedRooms.reserve(MIN_ROOM_COUNT);
-	Room* entrance = nullptr;
-	Room* exit = nullptr;
+	RoomInfo* entrance = nullptr;
+	RoomInfo* exit = nullptr;
 
 	Split(*(_bsp->GetRoot()));
  	SetNeighbor();
 	ConnectRooms(entrance, exit);
 	CreateDoors();
 
-	int startPosX = entrance->_rect.left + ((entrance->_rect.right - entrance->_rect.left) / 2);
-	int startPosY = entrance->_rect.top + ((entrance->_rect.bottom - entrance->_rect.top) / 2);
+	int startPosX = entrance->_rect._left + ((entrance->_rect._right - entrance->_rect._left) / 2);
+	int startPosY = entrance->_rect._top + ((entrance->_rect._bottom - entrance->_rect._top) / 2);
 
 	std::shared_ptr<Player> player = SpawnActor<Player>(Vector2(startPosX, startPosY));
 	std::shared_ptr<Cursor> cursor = SpawnActor<Cursor>(Vector2(startPosX, startPosY));
 
-	startPosX = exit->_rect.left + ((exit->_rect.right - exit->_rect.left) / 2);
-	startPosY = exit->_rect.top + ((exit->_rect.bottom - exit->_rect.top) / 2);
+	startPosX = exit->_rect._left + ((exit->_rect._right - exit->_rect._left) / 2);
+	startPosY = exit->_rect._top + ((exit->_rect._bottom - exit->_rect._top) / 2);
 
 	std::shared_ptr<Stairs> stairs = SpawnActor<Stairs>(Vector2(startPosX, startPosY));
 	std::shared_ptr<InputManager> inputManager = SpawnActor<InputManager>();
+
+	for (size_t i = 0; i < _connectedRooms.size(); i++)
+		_rooms.emplace_back(SpawnActor<Room>(_connectedRooms[i]->_rect));
+
+	for (size_t i = 0; i < _doors.size(); i++)
+	{
+		for (size_t j = 0; j < _connectedRooms.size(); j++)
+		{
+			if (_doors[i]._parents.first == _connectedRooms[j])
+				_rooms[i].lock()->AddDoor(_doors[i]._position);
+
+			if (_doors[i]._parents.second == _connectedRooms[j])
+				_rooms[i].lock()->AddDoor(_doors[i]._position);
+		}
+	}
 }
 
 void GameLevel::Tick(float deltaTime)
@@ -78,44 +92,12 @@ void GameLevel::Tick(float deltaTime)
 void GameLevel::Draw()
 {
 	super::Draw();
-
-	if (!hasInitialized)
-		return;
-
-	for (size_t i = 0; i < _connectedRooms.size(); i++)
-	{
-		Rect rect = _connectedRooms[i]->_rect;
-
-		std::string str = "";
-		for (int j = rect.left; j <= rect.right; j++)
-		{
-			str += " ";
-		}
-		Renderer::Get().Submit(str, Vector2(rect.left, rect.top), Color::B_White);
-		Renderer::Get().Submit(str, Vector2(rect.left, rect.bottom), Color::B_White);
-		
-		std::string dotStr = "";
-		for (int j = rect.left + 1; j <= rect.right - 1; j++)
-		{
-			dotStr += " ";
-		}
-
-		for (int j = rect.top + 1; j <= rect.bottom - 1; j++)
-		{
-			Renderer::Get().Submit(" ", Vector2(rect.left, j), Color::B_White);
-			Renderer::Get().Submit(" ", Vector2(rect.right, j), Color::B_White);
-			Renderer::Get().Submit(dotStr, Vector2(rect.left + 1, j), Color::B_GRAY);
-		}
-	}
-
-	for (size_t i = 0; i < _doors.size(); i++)
-		Renderer::Get().Submit(" " , _doors[i]._position, Color::B_Yellow, Sort::SortingOrder::Door);
 }
 
 void GameLevel::Split(BSPNode<Rect>& parent)
 {
-	int width = parent.GetData().right - parent.GetData().left;
-	int height = parent.GetData().bottom - parent.GetData().top;
+	int width = parent.GetData()._right - parent.GetData()._left;
+	int height = parent.GetData()._bottom - parent.GetData()._top;
 
 	int equalWidthSplit = 0;
 
@@ -137,11 +119,11 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 		int randSplit = static_cast<int>(Util::RandomRange(widthf * 0.3f, widthf * 0.7f));
 
 		Rect rectLeft = parent.GetData();
-		rectLeft.right = rectLeft.left + randSplit;
+		rectLeft._right = rectLeft._left + randSplit;
 		BSPNode<Rect>* leftChild = _bsp->AddLeftChild(&parent, rectLeft);
 
 		Rect rectRight = parent.GetData();
-		rectRight.left = rectLeft.right;
+		rectRight._left = rectLeft._right;
 		BSPNode<Rect>* rightChild = _bsp->AddRightChild(&parent, rectRight);
 
 		Split(*leftChild);
@@ -154,11 +136,11 @@ void GameLevel::Split(BSPNode<Rect>& parent)
 		int randSplit = static_cast<int>(Util::RandomRange(heightf * 0.3f, heightf * 0.7f));
 
 		Rect rectLeft = parent.GetData();
-		rectLeft.bottom = rectLeft.top + randSplit;
+		rectLeft._bottom = rectLeft._top + randSplit;
 		BSPNode<Rect>* leftChild = _bsp->AddLeftChild(&parent, rectLeft);
 
 		Rect rectRight = parent.GetData();
-		rectRight.top = rectLeft.bottom;
+		rectRight._top = rectLeft._bottom;
 		BSPNode<Rect>* rightChild = _bsp->AddRightChild(&parent, rectRight);
 
 		Split(*leftChild);
@@ -176,8 +158,8 @@ void GameLevel::SetNeighbor()
 		{
 			if (IsNeighbor(leaves[i]->GetData(), leaves[j]->GetData()))
 			{
-				Room* iRoom = leaves[i]->GetRoom();
-				Room* jRoom = leaves[j]->GetRoom();
+				RoomInfo* iRoom = leaves[i]->GetRoom();
+				RoomInfo* jRoom = leaves[j]->GetRoom();
 
 				if (iRoom && jRoom)
 				{
@@ -191,27 +173,27 @@ void GameLevel::SetNeighbor()
 
 bool GameLevel::IsNeighbor(const Rect& a, const Rect& b)
 {
-	bool horizontal = (a.right == b.left || a.left == b.right) &&
-		(a.top < b.bottom && a.bottom > b.top) &&
-		(min(a.bottom, b.bottom) - max(a.top, b.top)) >= 3;
+	bool horizontal = (a._right == b._left || a._left == b._right) &&
+		(a._top < b._bottom && a._bottom > b._top) &&
+		(min(a._bottom, b._bottom) - max(a._top, b._top)) >= 3;
 
-	bool vertical = (a.bottom == b.top || a.top == b.bottom) &&
-		(a.left < b.right && a.right > b.left) &&
-		(min(a.right, b.right) - max(a.left, b.left)) >= 3;
+	bool vertical = (a._bottom == b._top || a._top == b._bottom) &&
+		(a._left < b._right && a._right > b._left) &&
+		(min(a._right, b._right) - max(a._left, b._left)) >= 3;
 
 	return horizontal || vertical;
 }
 
-void GameLevel::ConnectRooms(Room*& outEntrance, Room*& outExit)
+void GameLevel::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 {
 	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
 
 	RoomConnect rc;
-	std::vector<Room*> path;
+	std::vector<RoomInfo*> path;
 	int randEntrance = 0;
 	int randExit = 0;
-	Room* entrance = nullptr;
-	Room* exit = nullptr;
+	RoomInfo* entrance = nullptr;
+	RoomInfo* exit = nullptr;
 	do
 	{
 		path.clear();
@@ -248,8 +230,8 @@ void GameLevel::ConnectRooms(Room*& outEntrance, Room*& outExit)
 		while (_connectedRooms.size() != MIN_ROOM_COUNT)
 		{
 			int randIndex = -1, randIndex2 = -1;
-			Room* current = nullptr;
-			Room* candidate = nullptr;
+			RoomInfo* current = nullptr;
+			RoomInfo* candidate = nullptr;
 			
 			do
 			{
@@ -258,7 +240,7 @@ void GameLevel::ConnectRooms(Room*& outEntrance, Room*& outExit)
 				randIndex2 = Util::RandomRange(0, static_cast<int>(current->_neighbors.size()) - 1);
 				candidate = current->_neighbors[randIndex2];
 
-				for (Room* room : _connectedRooms)
+				for (RoomInfo* room : _connectedRooms)
 				{
 					if (room == candidate)
 					{
@@ -279,7 +261,7 @@ void GameLevel::ConnectRooms(Room*& outEntrance, Room*& outExit)
 	outExit = exit;
 }
 
-void GameLevel::ConnectPath(std::vector<Room*>& path, int cost)
+void GameLevel::ConnectPath(std::vector<RoomInfo*>& path, int cost)
 {
 	std::vector<BSPNode<Rect>*> leaves = _bsp->GetLeaves();
 
@@ -289,7 +271,7 @@ void GameLevel::ConnectPath(std::vector<Room*>& path, int cost)
 		{
 			if (path[i] == leaves[j]->GetRoom())
 			{
-				std::vector<Room*>& connected = leaves[j]->GetRoom()->_connected;
+				std::vector<RoomInfo*>& connected = leaves[j]->GetRoom()->_connected;
 
 				auto iter = std::find(connected.begin(), connected.end(), path[i + 1]);
 
@@ -312,7 +294,7 @@ void GameLevel::CreateDoors()
 		// 최종 방들에서 연결된 방들 순회하며 문 만들기
 		for (size_t j = 0; j < _connectedRooms[i]->_connected.size(); j++)
 		{
-			Room* current = _connectedRooms[i]->_connected[j];
+			RoomInfo* current = _connectedRooms[i]->_connected[j];
 
 			if (HasDoor(_connectedRooms[i], current))
 				continue;
@@ -321,36 +303,36 @@ void GameLevel::CreateDoors()
 			int pos = 0;
 			Vector2 doorPos = Vector2::Zero;
 
-			if (_connectedRooms[i]->_rect.left == current->_rect.right ||
-				_connectedRooms[i]->_rect.right == current->_rect.left)
+			if (_connectedRooms[i]->_rect._left == current->_rect._right ||
+				_connectedRooms[i]->_rect._right == current->_rect._left)
 			{
-				if (_connectedRooms[i]->_rect.left == current->_rect.right)
-					pos = _connectedRooms[i]->_rect.left;
+				if (_connectedRooms[i]->_rect._left == current->_rect._right)
+					pos = _connectedRooms[i]->_rect._left;
 				else
-					pos = _connectedRooms[i]->_rect.right;
+					pos = _connectedRooms[i]->_rect._right;
 
 				isHorizonal = true;
 			}
 			else
 			{
-				if (_connectedRooms[i]->_rect.top == current->_rect.bottom)
-					pos = _connectedRooms[i]->_rect.top;
+				if (_connectedRooms[i]->_rect._top == current->_rect._bottom)
+					pos = _connectedRooms[i]->_rect._top;
 				else
-					pos = _connectedRooms[i]->_rect.bottom;
+					pos = _connectedRooms[i]->_rect._bottom;
 			}
 				
 			int a = 0, b = 0;
 
 			if (isHorizonal)
 			{
-				a = max(_connectedRooms[i]->_rect.top, current->_rect.top);
-				b = min(_connectedRooms[i]->_rect.bottom, current->_rect.bottom);
+				a = max(_connectedRooms[i]->_rect._top, current->_rect._top);
+				b = min(_connectedRooms[i]->_rect._bottom, current->_rect._bottom);
 				doorPos = Vector2(pos, a + ((b - a) / 2));
 			}
 			else
 			{
-				a = max(_connectedRooms[i]->_rect.left, current->_rect.left);
-				b = min(_connectedRooms[i]->_rect.right, current->_rect.right);
+				a = max(_connectedRooms[i]->_rect._left, current->_rect._left);
+				b = min(_connectedRooms[i]->_rect._right, current->_rect._right);
 				doorPos = Vector2(a + ((b - a) / 2), pos);
 			}
 			auto parents = std::make_pair(_connectedRooms[i], current);
@@ -359,7 +341,7 @@ void GameLevel::CreateDoors()
 	}
 }
 
-bool GameLevel::HasDoor(const Room* const a, const Room* const b) const
+bool GameLevel::HasDoor(const RoomInfo* const a, const RoomInfo* const b) const
 {
 	for (size_t i = 0; i < _doors.size(); i++)
 	{

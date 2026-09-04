@@ -1,5 +1,5 @@
 #include "RoomConnect.h"
-#include <ETC/Room.h>
+#include <ETC/RoomInfo.h>
 
 RoomConnect::RoomConnect()
 {
@@ -10,7 +10,7 @@ RoomConnect::~RoomConnect()
     Clear();
 }
 
-bool RoomConnect::ConnectRooms(Room*& entrance, Room*& exit, std::vector<Room*>& outPath)
+bool RoomConnect::ConnectRooms(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outPath)
 {
     Clear();
 
@@ -58,7 +58,7 @@ bool RoomConnect::ConnectRooms(Room*& entrance, Room*& exit, std::vector<Room*>&
 
         for (int i = 0; i < current->_room->_neighbors.size(); i++)
         {
-            Room* room = current->_room->_neighbors[i];
+            RoomInfo* room = current->_room->_neighbors[i];
 
             if (IsInClosedList(room))
                 continue;
@@ -87,7 +87,7 @@ bool RoomConnect::ConnectRooms(Room*& entrance, Room*& exit, std::vector<Room*>&
     return false;
 }
 
-void RoomConnect::ConstructPath(Node* destination, std::vector<Room*>& outPath)
+void RoomConnect::ConstructPath(Node* destination, std::vector<RoomInfo*>& outPath)
 {
     Node* current = destination;
     while (current)
@@ -104,7 +104,7 @@ void RoomConnect::Clear()
     _closedList.clear();
 }
 
-bool RoomConnect::IsInClosedList(const Room* const room) const
+bool RoomConnect::IsInClosedList(const RoomInfo* const room) const
 {
     for (const Node& n : _closedList)
     {
@@ -114,7 +114,7 @@ bool RoomConnect::IsInClosedList(const Room* const room) const
     return false;
 }
 
-Node* RoomConnect::FindOpenNode(const Room* const room)
+Node* RoomConnect::FindOpenNode(const RoomInfo* const room)
 {
     auto iter = _openList.begin();
     auto iter_end = _openList.end();

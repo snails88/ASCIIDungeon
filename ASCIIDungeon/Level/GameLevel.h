@@ -9,6 +9,8 @@ class BSPTree;
 template<typename T>
 class BSPNode;
 
+class Room;
+
 using namespace Craft;
 class GameLevel : public Level
 {
@@ -27,13 +29,14 @@ private:	// 맵 생성 관련 함수들
 	void Split(BSPNode<Rect>& parent);
 	void SetNeighbor();
 	bool IsNeighbor(const Rect& a, const Rect& b);
-	void ConnectRooms(Room*& outEntrance, Room*& outExit);
-	void ConnectPath(std::vector<Room*>& path, int cost = 1);
+	void ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit);
+	void ConnectPath(std::vector<RoomInfo*>& path, int cost = 1);
 	void CreateDoors();
-	bool HasDoor(const Room* const a, const Room* const b) const;
+	bool HasDoor(const RoomInfo* const a, const RoomInfo* const b) const;
 private:
 	BSPTree<Rect>* _bsp;
-	std::vector<Room*> _connectedRooms;
+	std::vector<RoomInfo*> _connectedRooms;		// 연결된 방 정보들
+	std::vector<std::weak_ptr<Room>> _rooms;	// 위 정보로 생성한 방 인스턴스들
 	std::vector<Door> _doors;
 };
 

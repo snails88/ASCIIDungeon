@@ -45,10 +45,11 @@ namespace Craft
 
 		inline int GetWidth() const { return width; }
 
-		inline void ChangeImage(const std::string& newImage)
+		inline void ChangeImage(const std::string& newImage, DWORD colorValue)
 		{
 			width = static_cast<int>(newImage.length());
 			image = newImage;
+			color = colorValue;
 		}
 
 	protected:
