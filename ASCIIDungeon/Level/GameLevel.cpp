@@ -110,6 +110,7 @@ void GameLevel::OnInitialized()
 	int startPosY = entrance->_rect._top + ((entrance->_rect._bottom - entrance->_rect._top) / 2);
 
 	std::shared_ptr<Player> player = SpawnActor<Player>(Vector2(startPosX, startPosY));
+	_player = player.get();
 	std::shared_ptr<Cursor> cursor = SpawnActor<Cursor>(Vector2(startPosX, startPosY));
 
 	startPosX = exit->_rect._left + ((exit->_rect._right - exit->_rect._left) / 2);
@@ -143,6 +144,25 @@ void GameLevel::Tick(float deltaTime)
 	{
 		ResetActors();
 		engine.GameOver();
+		return;
+	}
+
+	switch (_turn)
+	{
+	case GameLevel::Turn::EnemyTurn:
+		_turn = Turn::Delay;
+		break;
+
+	case GameLevel::Turn::Delay:
+		_turnDelay += deltaTime;
+		if (_turnDelay >= _maxTurnDelay)
+		{
+			_turnDelay = 0.f;
+			_turn = Turn::PlayerTurn;
+		}
+		break;
+	default:
+		break;
 	}
 }
 

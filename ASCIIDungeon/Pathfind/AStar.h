@@ -33,12 +33,12 @@ public:
 	AStar();
 	~AStar();
 
-	bool FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::vector<Vector2>& outPath);
+	bool FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath);
 
 	static AStar& Get();
 
 private:
-	void ConstructPath(Node* destination, std::vector<Vector2>& outPath) const;
+	void ConstructPath(Node* destination, std::deque<Vector2>& outPath) const;
 	bool IsInClosedList(const Vector2& pos) const;
 	bool IsBlocked(const Vector2& pos, const std::vector<Vector2>& blockedList) const;
 	bool IsDiagonalBlocked(const Vector2& current, const Vector2& dir, const std::vector<Vector2>& blockedList) const;
@@ -48,6 +48,7 @@ private:
 	int FindOpenNodeIndex(const Vector2& pos) const;
 
 private:
+	const float _diagonalCost = 1.41421f;
 	inline static std::unique_ptr<AStar> _instance;
 	std::deque<Node> _openList;
 	std::deque<Node> _closedList;

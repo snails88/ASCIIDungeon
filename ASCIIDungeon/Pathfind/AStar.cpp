@@ -12,7 +12,7 @@ AStar::~AStar()
     Clear();
 }
 
-bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::vector<Vector2>& outPath)
+bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath)
 {
     Clear();
 
@@ -41,13 +41,18 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
             float fCost = node._gCost + node._hCost;
 
             if (fCost < currentFCost || (fCost == currentFCost && node._hCost < currentNode->_hCost))
+            {
                 currentNode = &node;
+                currentFCost = fCost;
+            }
+                
         }
 
         if (currentNode->_position == goalPos)
         {
             ConstructPath(currentNode, outPath);
             Clear();
+            return true;
         }
 
         auto iter = _openList.begin();
@@ -83,12 +88,12 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
             if (IsInClosedList(newPos))
                 continue;
 
-            float gCost = (dir.x == 0 || dir.y == 0) ? 1.f : DIAGONAL_COST;
+            float gCost = (dir.x == 0 || dir.y == 0) ? 1.f : _diagonalCost;
 
             float newGCost = currentNode->_gCost + gCost;
 
             int index = FindOpenNodeIndex(newPos);
-            if (index > 0)
+            if (index >= 0)
             {
                 Node& openNode = _openList[index];
 
@@ -118,7 +123,7 @@ AStar& AStar::Get()
     return *_instance;
 }
 
-void AStar::ConstructPath(Node* destination, std::vector<Vector2>& outPath) const
+void AStar::ConstructPath(Node* destination, std::deque<Vector2>& outPath) const
 {
     Node* current = destination;
 
@@ -183,7 +188,7 @@ float AStar::CalculateHeuristic(const Vector2& current, const Vector2& goal) con
     int straightDistance = max(diffX, diffY) - diagonalDistance;
 
 
-    return diagonalDistance * DIAGONAL_COST + straightDistance * 1.f;
+    return diagonalDistance * _diagonalCost + straightDistance * 1.f;
 }
 
 int AStar::FindOpenNodeIndex(const Vector2& pos) const
