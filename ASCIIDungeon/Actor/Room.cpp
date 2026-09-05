@@ -43,7 +43,7 @@ void Room::Draw()
 	///
 
 	//for (size_t i = 0; i < _walls.size(); i++)
-	//	Renderer::Get().Submit(" ", _walls[i], Color::B_GRAY);
+	//	Renderer::Get().Submit(" ", _walls[i], Color::B_GRAY, Sort::Visualize);
 
 	for (size_t i = 0; i < _doors.size(); i++)
 		Renderer::Get().Submit(" ", _doors[i], Color::B_Yellow, Sort::SortingOrder::Door);
@@ -67,4 +67,7 @@ void Room::AddDoor(const Craft::Vector2& pos)
 		return;
 
 	_doors.emplace_back(pos);
+
+	auto iter = std::find(_walls.begin(), _walls.end(), pos);
+	_walls.erase(iter);
 }

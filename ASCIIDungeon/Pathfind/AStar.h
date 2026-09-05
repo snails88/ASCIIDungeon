@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <deque>
 #include <vector>
 #include <memory>
@@ -13,17 +13,11 @@ private:
 	struct Node
 	{
 		Vector2 _position;
+		// 대각선 비용도 1이라 int여도 상관없지만 추후 확장성 고려해서 float
 		float _gCost = 0.f;
 		float _hCost = 0.f;
 
 		Node* _parent = nullptr;
-	};
-
-	struct Direction
-	{
-		int _x = 0;
-		int _y = 0;
-		float _cost = 0.f;
 	};
 
 	enum class TileType
@@ -44,11 +38,14 @@ public:
 	static AStar& Get();
 
 private:
-	void ConstructPath(Node* destination, std::vector<Vector2>& outPath);
-	bool IsInClosedList(const Vector2& pos);
-	bool IsDiagonalBlocked(const Vector2& current, const Direction& dir);
+	void ConstructPath(Node* destination, std::vector<Vector2>& outPath) const;
+	bool IsInClosedList(const Vector2& pos) const;
+	bool IsBlocked(const Vector2& pos, const std::vector<Vector2>& blockedList) const;
+	bool IsDiagonalBlocked(const Vector2& current, const Vector2& dir, const std::vector<Vector2>& blockedList) const;
+	bool IsInRange(const Vector2& pos, const Rect& rect);
 	void Clear();
-
+	float CalculateHeuristic(const Vector2& current, const Vector2& goal) const;
+	int FindOpenNodeIndex(const Vector2& pos) const;
 
 private:
 	inline static std::unique_ptr<AStar> _instance;

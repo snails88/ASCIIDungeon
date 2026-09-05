@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <LeakCheck.h>
 #include <Core/Core.h>
 #include <Math/Vector2.h>
 #include <Math/Color.h>

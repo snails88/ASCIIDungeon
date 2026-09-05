@@ -25,18 +25,60 @@ void GameLevel::ResetActors()
 	}
 }
 
-RoomInfo* const GameLevel::FindRoom(const Craft::Vector2& pos) const
+std::pair<RoomInfo*, RoomInfo*> const GameLevel::FindRoomInfo(const Craft::Vector2& pos) const
 {
+	RoomInfo* first = nullptr;
+	RoomInfo* second = nullptr;
+
 	for (size_t i = 0; i < _connectedRooms.size(); i++)
 	{
 		const Rect& current = _connectedRooms[i]->_rect;
 
 		if (pos.x >= current._left && pos.x <= current._right &&
 			pos.y >= current._top && pos.y <= current._bottom)
-			return _connectedRooms[i];
+		{
+			if (!first)
+				first = _connectedRooms[i];
+			else
+			{
+				second = _connectedRooms[i];
+				break;
+			}
+		}
+			
 	}
 
-	return nullptr;
+	return std::make_pair(first, second);
+}
+
+int GameLevel::GetRoomIndex(const RoomInfo* const info) const
+{
+	for (size_t i = 0; i < _connectedRooms.size(); i++)
+	{
+		if (info == _connectedRooms[i])
+			return i;
+	}
+
+	return -1;
+}
+
+std::weak_ptr<Room> const GameLevel::GetRoom(int index) const
+{
+	return _rooms[index];
+}
+
+bool GameLevel::FindDoorPosition(const RoomInfo* parentA, const RoomInfo* const parentB, Vector2& outPos) const
+{
+	for (size_t i = 0; i < _doors.size(); i++)
+	{
+		if ((parentA == _doors[i]._parents.first && parentB == _doors[i]._parents.second) ||
+			(parentB == _doors[i]._parents.first && parentA == _doors[i]._parents.second))
+		{
+			outPos = _doors[i]._position;
+			return true;
+		}
+	}
+	return false;
 }
 
 

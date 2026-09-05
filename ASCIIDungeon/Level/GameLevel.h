@@ -21,7 +21,10 @@ public:
 
 	void ResetActors();
 
-	RoomInfo* const FindRoom(const Craft::Vector2& pos) const;
+	std::pair<RoomInfo*, RoomInfo*> const FindRoomInfo(const Craft::Vector2& pos) const;
+	int GetRoomIndex(const RoomInfo* const info) const;
+	std::weak_ptr<Room> const GetRoom(int index) const;
+	bool FindDoorPosition(const RoomInfo* const parentA, const RoomInfo* const parentB, Vector2& outPos) const;
 private:
 	virtual void OnInitialized() override;
 	virtual void Tick(float deltaTime) override;

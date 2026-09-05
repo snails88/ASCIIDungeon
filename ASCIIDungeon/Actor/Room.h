@@ -19,6 +19,8 @@ public:
 	void AddWall(const Craft::Vector2& pos);
 	void AddDoor(const Craft::Vector2& pos);
 
+	inline const std::vector<Craft::Vector2>& GetWalls() { return _walls; }
+
 private:
 	Rect _rect;
 	std::vector<Craft::Vector2> _walls;
