@@ -3,6 +3,7 @@
 const int MIN_PARTITION_SIZE = 120;
 const BYTE MIN_PATH_SIZE = 7;
 const BYTE MIN_ROOM_COUNT = 14;
+const float DIAGONAL_COST = 1.41421f;
 
 namespace Sort
 {

@@ -1,6 +1,7 @@
 ﻿#include "AStar.h"
 #include <Level/GameLevel.h>
 #include <algorithm>
+#include <Define.h>
 
 AStar::AStar()
 {
@@ -82,7 +83,9 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
             if (IsInClosedList(newPos))
                 continue;
 
-            float newGCost = currentNode->_gCost + 1.f;
+            float gCost = (dir.x == 0 || dir.y == 0) ? 1.f : DIAGONAL_COST;
+
+            float newGCost = currentNode->_gCost + gCost;
 
             int index = FindOpenNodeIndex(newPos);
             if (index > 0)
@@ -176,7 +179,11 @@ float AStar::CalculateHeuristic(const Vector2& current, const Vector2& goal) con
     int diffX = std::abs(current.x - goal.x);
     int diffY = std::abs(current.y - goal.y);
 
-    return static_cast<float>(max(diffX, diffY));
+    int diagonalDistance = min(diffX, diffY);
+    int straightDistance = max(diffX, diffY) - diagonalDistance;
+
+
+    return diagonalDistance * DIAGONAL_COST + straightDistance * 1.f;
 }
 
 int AStar::FindOpenNodeIndex(const Vector2& pos) const
