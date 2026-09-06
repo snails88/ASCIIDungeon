@@ -86,6 +86,11 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 	RoomInfo* currentRoom = MapManager::Get().FindRoomInfo(position).first;
 	RoomInfo* goalRoom = MapManager::Get().FindRoomInfo(cursorPos).first;
 
+	int goalIndex = MapManager::Get().GetRoomIndex(goalRoom);
+
+	if (AStar::Get().IsBlocked(cursorPos, MapManager::Get().GetRoom(goalIndex).lock()->GetWalls()))
+		return;
+
 	if (currentRoom && goalRoom)
 	{
 		std::vector<RoomInfo*> route;

@@ -35,12 +35,12 @@ public:
 
 	bool FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath, bool allowDiagonal = true);
 
+	bool IsBlocked(const Vector2& pos, const std::vector<Vector2>& blockedList) const;
 	static AStar& Get();
 
 private:
 	void ConstructPath(Node* destination, std::deque<Vector2>& outPath) const;
 	bool IsInClosedList(const Vector2& pos) const;
-	bool IsBlocked(const Vector2& pos, const std::vector<Vector2>& blockedList) const;
 	bool IsDiagonalBlocked(const Vector2& current, const Vector2& dir, const std::vector<Vector2>& blockedList) const;
 	bool IsInRange(const Vector2& pos, const Rect& rect);
 	void Clear();
