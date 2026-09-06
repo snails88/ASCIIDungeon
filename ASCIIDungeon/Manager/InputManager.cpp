@@ -3,36 +3,27 @@
 #include <Level/GameLevel.h>
 #include <Actor/Player.h>
 #include <Actor/Cursor.h>
-#include <Actor/Room.h>
 #include <Input/Input.h>
-#include <PathFind/Dijkstra.h>
-#include <Pathfind/AStar.h>
 
 using namespace Craft;
 
 InputManager::InputManager()
-	:super("")
 {
 	_game = static_cast<Game*>(&Engine::Get());
 
 	_player = nullptr;
 	_cursor = nullptr;
+	_level = static_cast<GameLevel*>(_game->GetLevel().lock().get());
 }
 
-void InputManager::BeginPlay()
-{
-	super::BeginPlay();
-}
 
 void InputManager::Tick(float deltaTime)
 {
-	super::Tick(deltaTime);
-
 	if(!_player)
-		_player = GetOwner()->FindActor<Player>().get();
+		_player = _level->FindActor<Player>().get();
 
 	if(!_cursor)
-		_cursor = GetOwner()->FindActor<Cursor>().get();
+		_cursor = _level->FindActor<Cursor>().get();
 
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
 	{
@@ -83,6 +74,10 @@ void InputManager::Tick(float deltaTime)
 
 }
 
-void InputManager::Draw()
+InputManager& InputManager::Get()
 {
+	if (!_instance)
+		_instance = std::make_unique<InputManager>();
+
+	return *_instance;
 }

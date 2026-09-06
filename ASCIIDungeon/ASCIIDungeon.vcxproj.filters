@@ -39,13 +39,19 @@
     <ClCompile Include="Actor\Cursor.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
-    <ClCompile Include="Actor\InputManager.cpp">
+    <ClCompile Include="Manager\InputManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="Actor\Room.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
     <ClCompile Include="PathFind\AStar.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\MapManager.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="Manager\TurnManager.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,7 +92,7 @@
     <ClInclude Include="Actor\Cursor.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="Actor\InputManager.h">
+    <ClInclude Include="Manager\InputManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="Actor\Room.h">
@@ -96,6 +102,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="PathFind\AStar.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\MapManager.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="Manager\TurnManager.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

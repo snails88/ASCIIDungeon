@@ -22,7 +22,6 @@ public:
 
 private:
 	std::deque<Craft::Vector2> _path;
-	GameLevel* _level;
 	bool _move;
 };
 

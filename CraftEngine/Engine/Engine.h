@@ -39,6 +39,8 @@ namespace Craft
 		inline int64_t GetTime() const { return currentTime; }
 		float GetFrequency() const;
 
+		std::weak_ptr<Level> GetLevel() const { return mainLevel; }
+
 	protected:
 		void ProcessInput();			// 입력 처리 함수 (입력 폴링)
 		void OnInitilized();			// 초기화 함수

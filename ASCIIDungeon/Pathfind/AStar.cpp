@@ -45,7 +45,6 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
                 currentNode = &node;
                 currentFCost = fCost;
             }
-                
         }
 
         if (currentNode->_position == goalPos)

@@ -1,10 +1,11 @@
 ﻿#include "Player.h"
 #include <Define.h>
 #include <Math/Color.h>
-#include <Level/GameLevel.h>
+#include <Actor/Room.h>
 #include <Pathfind/Dijkstra.h>
 #include <Pathfind/AStar.h>
-#include <Actor/Room.h>
+#include <Manager/MapManager.h>
+#include <Manager/TurnManager.h>
 
 using namespace Craft;
 
@@ -19,14 +20,13 @@ Player::Player(const Vector2& pos)
 void Player::BeginPlay()
 {
 	super::BeginPlay();
-	_level = Cast<GameLevel>(GetOwner()).get();
 }
 
 void Player::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 
-	if (_level->IsPlayerTurn())
+	if (TurnManager::Get().IsPlayerTurn())
 	{
 		if (_move)
 		{
@@ -43,7 +43,7 @@ void Player::Tick(float deltaTime)
 				}
 				
 				position = nextPos;
-				_level->SetTurnType(GameLevel::Turn::EnemyTurn);
+				TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
 			}
 			else
 				_move = false;
@@ -79,12 +79,12 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 
 	if (position == cursorPos)
 	{
-		_level->SetTurnType(GameLevel::Turn::EnemyTurn);
+		TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
 		return;
 	}
 
-	RoomInfo* currentRoom = _level->FindRoomInfo(position).first;
-	RoomInfo* goalRoom = _level->FindRoomInfo(cursorPos).first;
+	RoomInfo* currentRoom = MapManager::Get().FindRoomInfo(position).first;
+	RoomInfo* goalRoom = MapManager::Get().FindRoomInfo(cursorPos).first;
 
 	if (currentRoom && goalRoom)
 	{
@@ -94,9 +94,9 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 		{
 			if (route.size() == 1)	// 방 내 이동
 			{
-				RoomInfo* info = _level->FindRoomInfo(position).first;
+				RoomInfo* info = MapManager::Get().FindRoomInfo(position).first;
 				Rect rect = info->_rect;
-				const std::vector<Vector2>& walls = _level->GetRoom(_level->GetRoomIndex(info)).lock()->GetWalls();
+				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
 
 				AStar::Get().FindPath(position, cursorPos, rect, walls, _path);
 			}
@@ -107,7 +107,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 				{
 					std::deque<Vector2> tmp;
 					Vector2 doorPos;
-					std::pair<RoomInfo*, RoomInfo*> infos = _level->FindRoomInfo(prevPos);
+					std::pair<RoomInfo*, RoomInfo*> infos = MapManager::Get().FindRoomInfo(prevPos);
 					RoomInfo* info = infos.first;
 
 					if (!info)
@@ -126,9 +126,9 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 					}
 
 					Rect rect = info->_rect;
-					const std::vector<Vector2>& walls = _level->GetRoom(_level->GetRoomIndex(info)).lock()->GetWalls();
+					const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
 
-					_level->FindDoorPosition(route[i], route[i + 1], doorPos);
+					MapManager::Get().FindDoorPosition(route[i], route[i + 1], doorPos);
 					AStar::Get().FindPath(prevPos, doorPos, rect, walls, tmp);
 					_path.insert(_path.end(), tmp.begin(), tmp.end());
 					prevPos = doorPos;
@@ -138,7 +138,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 
 				Vector2 currentPos = _path[_path.size() - 1];
 				std::deque<Vector2> tmp;
-				std::pair<RoomInfo*, RoomInfo*> infos = _level->FindRoomInfo(currentPos);
+				std::pair<RoomInfo*, RoomInfo*> infos = MapManager::Get().FindRoomInfo(currentPos);
 				RoomInfo* info = infos.first;
 				if (infos.second)
 				{
@@ -152,7 +152,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 				}
 
 				Rect rect = info->_rect;
-				const std::vector<Vector2>& walls = _level->GetRoom(_level->GetRoomIndex(info)).lock()->GetWalls();
+				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
 				AStar::Get().FindPath(currentPos, cursorPos, rect, walls, tmp);
 				_path.insert(_path.end(), tmp.begin(), tmp.end());
 			}

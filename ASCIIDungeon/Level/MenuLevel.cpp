@@ -1,5 +1,4 @@
 ﻿#include "MenuLevel.h"
-#include "MenuLevel.h"
 #include <Game/Game.h>
 #include <Input/Input.h>
 #include <Render/Renderer.h>
