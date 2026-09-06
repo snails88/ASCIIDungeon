@@ -15,12 +15,12 @@ using namespace Craft;
 MapManager::MapManager()
 	:_bsp(nullptr)
 {
+	
 }
 
 MapManager::~MapManager()
 {
-	delete _bsp;
-	_bsp = nullptr;
+	Clear();
 }
 
 void MapManager::BeginPlay()
@@ -124,6 +124,15 @@ bool MapManager::FindDoorPosition(const RoomInfo* const parentA, const RoomInfo*
 		}
 	}
 	return false;
+}
+
+void MapManager::Clear()
+{
+	delete _bsp;
+	_bsp = nullptr;
+	_connectedRooms.clear();
+	_rooms.clear();
+	_doors.clear();
 }
 
 MapManager& MapManager::Get()
@@ -260,6 +269,34 @@ void MapManager::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 		if (leaves[i]->GetRoom()->_connected.size() > 0)
 			_connectedRooms.emplace_back(leaves[i]->GetRoom());
 	}
+
+	entrance->_type = RoomInfo::RoomType::ENTRANCE;
+	exit->_type = RoomInfo::RoomType::EXIT;
+
+	int corridorCount = 0;
+
+	do
+	{
+		int randCorridor = Util::RandomRange(0, _connectedRooms.size() - 1);
+		if (_connectedRooms[randCorridor]->_type == RoomInfo::RoomType::ENTRANCE ||
+			_connectedRooms[randCorridor]->_type == RoomInfo::RoomType::EXIT ||
+			_connectedRooms[randCorridor]->_type == RoomInfo::RoomType::CORRIDOR)
+			continue;
+
+		bool corridorConneced = false;
+
+		for (size_t i = 0; i < _connectedRooms[randCorridor]->_connected.size(); i++)
+		{
+			if (_connectedRooms[randCorridor]->_connected[i]->_type == RoomInfo::RoomType::CORRIDOR)
+				corridorConneced = true;
+		}
+
+		if (corridorConneced)
+			continue;
+
+		_connectedRooms[randCorridor]->_type = RoomInfo::RoomType::CORRIDOR;
+		++corridorCount;
+	} while (corridorCount != static_cast<int>(CORRIDOR_COUNT));
 
 	int size = static_cast<int>(_connectedRooms.size());	// 기존 연결된 방에서만 추가 방 붙이는용
 

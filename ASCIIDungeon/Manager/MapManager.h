@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include <memory>
 #include <ETC/RoomInfo.h>
 #include <Math/Vector2.h>
@@ -23,7 +23,10 @@ public:
 	int GetRoomIndex(const RoomInfo* const info) const;
 	bool FindDoorPosition(const RoomInfo* const parentA, const RoomInfo* const parentB, Craft::Vector2& outPos) const;
 
+	inline const std::vector<Door>& GetDoors() const { return _doors; }
 	inline std::weak_ptr<Room> const GetRoom(int index) const { return _rooms[index]; }
+
+	void Clear();
 
 	static MapManager& Get();
 

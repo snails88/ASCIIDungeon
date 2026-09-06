@@ -33,7 +33,7 @@ public:
 	AStar();
 	~AStar();
 
-	bool FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath);
+	bool FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath, bool allowDiagonal = true);
 
 	static AStar& Get();
 
@@ -44,11 +44,11 @@ private:
 	bool IsDiagonalBlocked(const Vector2& current, const Vector2& dir, const std::vector<Vector2>& blockedList) const;
 	bool IsInRange(const Vector2& pos, const Rect& rect);
 	void Clear();
-	float CalculateHeuristic(const Vector2& current, const Vector2& goal) const;
+	float CalculateHeuristic(const Vector2& current, const Vector2& goal, bool allowDiagonal = true) const;
 	int FindOpenNodeIndex(const Vector2& pos) const;
 
 private:
-	const float _diagonalCost = 1.41421f;
+	inline static const float _diagonalCost = 1.41421f;
 	inline static std::unique_ptr<AStar> _instance;
 	std::deque<Node> _openList;
 	std::deque<Node> _closedList;

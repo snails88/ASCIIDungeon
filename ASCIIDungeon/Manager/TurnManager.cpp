@@ -29,6 +29,12 @@ void TurnManager::Tick(float deltaTime)
 	}
 }
 
+void TurnManager::Clear()
+{
+	_turnDelay = 0.f;
+	_turn = Turn::PlayerTurn;
+}
+
 TurnManager& TurnManager::Get()
 {
     if (!_instance)

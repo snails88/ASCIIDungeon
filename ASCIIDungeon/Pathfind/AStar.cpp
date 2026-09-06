@@ -12,7 +12,7 @@ AStar::~AStar()
     Clear();
 }
 
-bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath)
+bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect& rect, const std::vector<Vector2>& blockedList, std::deque<Vector2>& outPath, bool allowDiagonal)
 {
     Clear();
 
@@ -26,11 +26,18 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
 
     _openList.emplace_back(startNode);
 
-    static const std::vector<Vector2> dirs =
+    static const std::vector<Vector2> straightDirs =
     {
-        {0, -1}, {0, 1}, {-1, 0}, {1, 0},   // 상하좌우
-        {-1, -1}, {1, -1}, {-1, 1}, {1, 1}  // 대각선
+        {0, -1}, {0, 1}, {-1, 0}, {1, 0}
     };
+
+    static const std::vector<Vector2> allDirs =
+    {
+        {0, -1}, {0, 1}, {-1, 0}, {1, 0},
+        {-1, -1}, {1, -1}, {-1, 1}, {1, 1}
+    };
+
+    const std::vector<Vector2>& dirs = allowDiagonal ? allDirs : straightDirs;
 
     while (!_openList.empty())
     {
@@ -105,7 +112,7 @@ bool AStar::FindPath(const Vector2& startPos, const Vector2& goalPos, const Rect
                 continue;
             }
 
-            Node neighborNode = Node{ newPos, newGCost, CalculateHeuristic(newPos, goalPos), currentNode};
+            Node neighborNode = Node{ newPos, newGCost, CalculateHeuristic(newPos, goalPos, allowDiagonal), currentNode};
 
             _openList.emplace_back(neighborNode);
         }
@@ -178,10 +185,13 @@ void AStar::Clear()
     _closedList.clear();
 }
 
-float AStar::CalculateHeuristic(const Vector2& current, const Vector2& goal) const
+float AStar::CalculateHeuristic(const Vector2& current, const Vector2& goal, bool allowDiagonal) const
 {
     int diffX = std::abs(current.x - goal.x);
     int diffY = std::abs(current.y - goal.y);
+
+    if (!allowDiagonal)
+        return static_cast<float>(diffX + diffY);
 
     int diagonalDistance = min(diffX, diffY);
     int straightDistance = max(diffX, diffY) - diagonalDistance;

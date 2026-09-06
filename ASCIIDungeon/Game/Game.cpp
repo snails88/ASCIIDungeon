@@ -1,6 +1,9 @@
 #include "Game.h"
 #include <Level/GameLevel.h>
 #include <Level/MenuLevel.h>
+#include <Manager/InputManager.h>
+#include <Manager/MapManager.h>
+#include <Manager/TurnManager.h>
 
 Game::Game()
 {
@@ -35,6 +38,10 @@ void Game::GameOver()
 {
 	state = State::Menu;
 	mainLevel = levelList[(int)state];
+
+	InputManager::Get().Clear();
+	MapManager::Get().Clear();
+	TurnManager::Get().Clear();
 
 	levelList[(int)State::GamePlay].reset();
 }

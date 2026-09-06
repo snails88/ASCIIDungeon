@@ -19,6 +19,8 @@ public:
 	inline void SetTurnType(Turn type) { _turn = type; }
 	inline bool IsPlayerTurn() const { return _turn == Turn::PlayerTurn; }
 
+	void Clear();
+
 	static TurnManager& Get();
 
 private:

@@ -13,12 +13,15 @@ InputManager::InputManager()
 
 	_player = nullptr;
 	_cursor = nullptr;
-	_level = static_cast<GameLevel*>(_game->GetLevel().lock().get());
+	
 }
 
 
 void InputManager::Tick(float deltaTime)
 {
+	if(!_level)
+		_level = static_cast<GameLevel*>(_game->GetLevel().lock().get());
+
 	if(!_player)
 		_player = _level->FindActor<Player>().get();
 
@@ -80,4 +83,12 @@ InputManager& InputManager::Get()
 		_instance = std::make_unique<InputManager>();
 
 	return *_instance;
+}
+
+void InputManager::Clear()
+{
+	_pressedTime = 0.f;
+	_player = nullptr;
+	_cursor = nullptr;
+	_level = nullptr;
 }

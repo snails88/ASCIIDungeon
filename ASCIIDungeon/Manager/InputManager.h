@@ -15,6 +15,8 @@ public:
 
 	static InputManager& Get();
 
+	void Clear();
+
 private:
 	inline static std::unique_ptr<InputManager> _instance = nullptr;
 
