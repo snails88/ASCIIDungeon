@@ -1,5 +1,7 @@
 #include "Dijkstra.h"
+#include <Actor/Room.h>
 #include <ETC/RoomInfo.h>
+#include <Manager/MapManager.h>
 
 Dijkstra::Dijkstra()
 {
@@ -10,7 +12,7 @@ Dijkstra::~Dijkstra()
     Clear();
 }
 
-bool Dijkstra::FindRoute(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outRoute, bool isConnected)
+bool Dijkstra::FindRoute(RoomInfo*& entrance, std::pair<RoomInfo*, RoomInfo*>& exit, std::vector<RoomInfo*>& outRoute, bool isConnected, bool isPlayerMove)
 {
     Clear();
 
@@ -30,7 +32,7 @@ bool Dijkstra::FindRoute(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomI
                 current = &node;
         }
 
-        if (current->_room == exit)
+        if (current->_room == exit.first || (exit.second && current->_room == exit.second))
         {
             ConstructRoute(current, outRoute);
             ClearCost();
@@ -56,14 +58,22 @@ bool Dijkstra::FindRoute(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomI
 
         current = &_closedList.back();
 
-        std::vector<RoomInfo*>& near = isConnected ? current->_room->_connected : current->_room->_neighbors;
+        std::vector<RoomInfo*>& nearInfo = isConnected ? current->_room->_connected : current->_room->_neighbors;
 
-        for (int i = 0; i < near.size(); i++)
+        for (int i = 0; i < nearInfo.size(); i++)
         {
-            RoomInfo* room = near[i];
+            RoomInfo* room = nearInfo[i];
 
             if (IsInClosedList(room))
                 continue;
+
+            if (isPlayerMove)
+            {
+                std::weak_ptr<Room> r = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(room));
+
+                if (!r.lock()->IsVisited())
+                    continue;
+            }
 
             int newCost = current->_room->_cost + room->_cost;
 

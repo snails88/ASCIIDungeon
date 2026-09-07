@@ -100,6 +100,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Actor\Cursor.cpp" />
+    <ClCompile Include="Actor\Enemy.cpp" />
     <ClCompile Include="Manager\InputManager.cpp" />
     <ClCompile Include="Actor\Player.cpp" />
     <ClCompile Include="Actor\Room.cpp" />
@@ -115,6 +116,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Actor\Cursor.h" />
+    <ClInclude Include="Actor\Enemy.h" />
     <ClInclude Include="Manager\InputManager.h" />
     <ClInclude Include="Actor\Player.h" />
     <ClInclude Include="Actor\Room.h" />

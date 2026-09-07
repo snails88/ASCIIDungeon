@@ -3,6 +3,7 @@
 #include <Render/Renderer.h>
 #include <Manager/MapManager.h>
 #include <Define.h>
+#include <Actor/Stairs.h>
 #include <ETC/Door.h>
 #include <Pathfind/AStar.h>
 #include <deque>
@@ -51,7 +52,6 @@ Room::Room(const Rect& rect)
 
 		for (size_t i = 0; i < doors.size(); i++)
 		{
-
 			tmp.clear();
 			AStar::Get().FindPath(doors[i], center, _rect, _walls, tmp, false);
 			path.insert(path.end(), tmp.begin(), tmp.end());
@@ -93,8 +93,8 @@ void Room::Draw()
 	{
 		if(_isVisible)
 			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_White, Sort::Floor);
-		else
-			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_GRAY, Sort::Floor);
+		else if(_visited)
+			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_Gray, Sort::Floor);
 	}
 		
 	///
@@ -103,7 +103,11 @@ void Room::Draw()
 		Renderer::Get().Submit(" ", _walls[i], 0, Sort::Wall);
 
 	for (size_t i = 0; i < _doors.size(); i++)
-		Renderer::Get().Submit(" ", _doors[i], Color::B_Yellow, Sort::SortingOrder::Door);
+	{
+		if(_visited)
+			Renderer::Get().Submit(" ", _doors[i], Color::B_Yellow, Sort::SortingOrder::Door);
+	}
+		
 }
 
 void Room::AddWall(const Craft::Vector2& pos)
@@ -128,4 +132,32 @@ void Room::AddDoor(const Craft::Vector2& pos)
 	auto iter = std::find(_walls.begin(), _walls.end(), pos);
 	if(iter != _walls.end())
 		_walls.erase(iter);
+}
+
+void Room::AddActor(std::shared_ptr<Actor> actor)
+{
+	_actors.emplace_back(actor);
+}
+
+void Room::SetVisible(bool visible)
+{
+	if (visible)
+	{
+		Visit();
+		
+		auto iter = _actors.begin();
+		while (iter != _actors.end())
+		{
+			size_t type = iter->lock()->GetType();
+
+			if (type == Stairs::TypeId())
+			{
+				Cast<Stairs>(iter->lock())->Visit();
+			}
+
+			++iter;
+		}
+	}
+
+	_isVisible = visible;
 }

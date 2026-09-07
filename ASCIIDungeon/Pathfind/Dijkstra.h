@@ -16,7 +16,7 @@ public:
 	Dijkstra();
 	~Dijkstra();
 
-	bool FindRoute(RoomInfo*& entrance, RoomInfo*& exit, std::vector<RoomInfo*>& outRoute, bool isConnected = true);	// 방 연결
+	bool FindRoute(RoomInfo*& entrance, std::pair<RoomInfo*, RoomInfo*>& exit, std::vector<RoomInfo*>& outRoute, bool isConnected = true, bool isPlayerMove = false);	// 방 연결
 	
 	static Dijkstra& Get();
 

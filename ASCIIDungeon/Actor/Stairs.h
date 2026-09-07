@@ -11,6 +11,8 @@ public:
 	virtual void BeginPlay() override;
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
-private:
 
+	inline void Visit() { _visited = true; }
+private:
+	bool _visited = false;
 };

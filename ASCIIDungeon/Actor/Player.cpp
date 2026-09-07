@@ -68,6 +68,18 @@ void Player::Draw()
 
 void Player::Move(const Craft::Vector2& pos)
 {
+	std::pair<RoomInfo*, RoomInfo*> info = MapManager::Get().FindRoomInfo(pos);
+
+	bool visited1 = false, visited2 = false;
+
+	if (info.first)
+		visited1 = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info.first)).lock()->IsVisited();
+	if (info.second)
+		visited2 = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info.second)).lock()->IsVisited();
+
+	if (!visited1 && !visited2)
+		return;
+
 	_move = true;
 	RequestPathFind(pos);
 
@@ -93,18 +105,18 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 	}
 
 	RoomInfo* currentRoom = MapManager::Get().FindRoomInfo(position).first;
-	RoomInfo* goalRoom = MapManager::Get().FindRoomInfo(cursorPos).first;
+	std::pair<RoomInfo*, RoomInfo*> goalRoom = MapManager::Get().FindRoomInfo(cursorPos);
 
-	int goalIndex = MapManager::Get().GetRoomIndex(goalRoom);
+	int goalIndex = MapManager::Get().GetRoomIndex(goalRoom.first);
 
 	if (AStar::Get().IsBlocked(cursorPos, MapManager::Get().GetRoom(goalIndex).lock()->GetWalls()))
 		return;
 
-	if (currentRoom && goalRoom)
+	if (currentRoom && goalRoom.first)
 	{
 		std::vector<RoomInfo*> route;
 
-		if (Dijkstra::Get().FindRoute(currentRoom, goalRoom, route))
+		if (Dijkstra::Get().FindRoute(currentRoom, goalRoom, route, true, true))
 		{
 			if (route.size() == 1)	// 방 내 이동
 			{

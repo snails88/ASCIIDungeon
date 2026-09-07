@@ -5,7 +5,7 @@
 using namespace Craft;
 
 Stairs::Stairs(const Craft::Vector2& pos)
-	: super(" ", pos, Color::B_GRAY)
+	: super(" ", pos, Color::B_Magenta)
 {
 	sortingOrder = Sort::Stairs;
 }
@@ -22,5 +22,7 @@ void Stairs::Tick(float deltaTime)
 
 void Stairs::Draw()
 {
+	if (!_visited)
+		return;
 	super::Draw();
 }

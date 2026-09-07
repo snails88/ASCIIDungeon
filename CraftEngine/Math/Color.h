@@ -23,7 +23,7 @@ namespace Craft
 		B_Magenta = B_Red | B_Blue,
 		B_White = B_Red | B_Green | B_Blue,
 		B_BrightWhite = B_White | BACKGROUND_INTENSITY,
-		GRAY = FOREGROUND_INTENSITY,
-		B_GRAY = BACKGROUND_INTENSITY
+		Gray = FOREGROUND_INTENSITY,
+		B_Gray = BACKGROUND_INTENSITY
 	};
 }

@@ -56,10 +56,12 @@ void MapManager::BeginPlay()
 	startPosX = exit->_rect._left + ((exit->_rect._right - exit->_rect._left) / 2);
 	startPosY = exit->_rect._top + ((exit->_rect._bottom - exit->_rect._top) / 2);
 
-	std::shared_ptr<Stairs> stairs = level.lock()->SpawnActor<Stairs>(Vector2(startPosX, startPosY));
-
 	for (size_t i = 0; i < _connectedRooms.size(); i++)
 		_rooms.emplace_back(level.lock()->SpawnActor<Room>(_connectedRooms[i]->_rect));
+
+	std::shared_ptr<Stairs> stairs = level.lock()->SpawnActor<Stairs>(Vector2(startPosX, startPosY));
+
+	_rooms[GetRoomIndex(FindRoomInfo(stairs->GetPosition()).first)].lock()->AddActor(stairs);
 
 	for (size_t i = 0; i < _doors.size(); i++)
 	{
@@ -259,14 +261,14 @@ void MapManager::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 	int randEntrance = 0;
 	int randExit = 0;
 	RoomInfo* entrance = nullptr;
-	RoomInfo* exit = nullptr;
+	std::pair<RoomInfo*, RoomInfo*> exit = std::make_pair(nullptr, nullptr);
 	do
 	{
 		route.clear();
 		randEntrance = Util::RandomRange(0, static_cast<int>(leaves.size()) - 1);
 		randExit = Util::RandomRange(0, static_cast<int>(leaves.size()) - 1);
 		entrance = leaves[randEntrance]->GetRoom();
-		exit = leaves[randExit]->GetRoom();
+		exit = std::make_pair(leaves[randExit]->GetRoom(), nullptr);
 		d.FindRoute(entrance, exit, route, false);
 	} while (route.size() < MIN_PATH_SIZE);
 
@@ -275,7 +277,7 @@ void MapManager::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 	route.clear();
 
 	entrance = leaves[randEntrance]->GetRoom();
-	exit = leaves[randExit]->GetRoom();
+	exit = std::make_pair(leaves[randExit]->GetRoom(), nullptr);
 	d.FindRoute(entrance, exit, route, false);
 
 	ConnectPath(route);
@@ -287,7 +289,7 @@ void MapManager::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 	}
 
 	entrance->_type = RoomInfo::RoomType::ENTRANCE;
-	exit->_type = RoomInfo::RoomType::EXIT;
+	exit.first->_type = RoomInfo::RoomType::EXIT;
 
 	int corridorCount = 0;
 
@@ -349,7 +351,7 @@ void MapManager::ConnectRooms(RoomInfo*& outEntrance, RoomInfo*& outExit)
 	}
 
 	outEntrance = entrance;
-	outExit = exit;
+	outExit = exit.first;
 
 }
 
