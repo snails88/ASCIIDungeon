@@ -15,6 +15,8 @@ public:
 	virtual void Tick(float deltaTime);
 	virtual void Draw();
 
+	inline void SetVisible(bool visible) { _isVisible = visible; }
+
 public:
 	void AddWall(const Craft::Vector2& pos);
 	void AddDoor(const Craft::Vector2& pos);
@@ -22,6 +24,7 @@ public:
 	inline const std::vector<Craft::Vector2>& GetWalls() { return _walls; }
 
 private:
+	bool _isVisible = false;
 	Rect _rect;
 	std::vector<Craft::Vector2> _walls;
 	std::vector<Craft::Vector2> _doors;

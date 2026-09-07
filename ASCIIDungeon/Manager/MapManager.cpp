@@ -73,6 +73,9 @@ void MapManager::BeginPlay()
 		}
 	}
 
+	int playerRoomIndex = GetRoomIndex(FindRoomInfo(player->GetPosition()).first);
+
+	_rooms[playerRoomIndex].lock()->SetVisible(true);
 }
 
 std::pair<RoomInfo*, RoomInfo*> const MapManager::FindRoomInfo(const Craft::Vector2& pos) const
@@ -124,6 +127,19 @@ bool MapManager::FindDoorPosition(const RoomInfo* const parentA, const RoomInfo*
 		}
 	}
 	return false;
+}
+
+void MapManager::RevealRoom(const Craft::Vector2& pos)
+{
+	std::pair<RoomInfo*, RoomInfo*> info = FindRoomInfo(pos);
+
+	for (size_t i = 0; i < _rooms.size(); i++)
+		_rooms[i].lock()->SetVisible(false);
+
+	_rooms[GetRoomIndex(info.first)].lock()->SetVisible(true);
+
+	if(info.second)
+		_rooms[GetRoomIndex(info.second)].lock()->SetVisible(true);
 }
 
 void MapManager::Clear()

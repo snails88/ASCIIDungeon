@@ -2,6 +2,8 @@
 #include <Define.h>
 #include <Math/Color.h>
 #include <Actor/Room.h>
+#include <Actor/Cursor.h>
+#include <Level/Level.h>
 #include <Pathfind/Dijkstra.h>
 #include <Pathfind/AStar.h>
 #include <Manager/MapManager.h>
@@ -43,6 +45,13 @@ void Player::Tick(float deltaTime)
 				}
 				
 				position = nextPos;
+
+				std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
+
+				if (cursor->GetPosition() == position)
+					cursor->ChangeImage("P", Color::B_Cyan | Color::Magenta);
+
+				MapManager::Get().RevealRoom(position);
 				TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
 			}
 			else

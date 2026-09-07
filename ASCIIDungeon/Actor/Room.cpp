@@ -90,7 +90,13 @@ void Room::Draw()
 		str += " ";
 
 	for (int j = _rect._top + 1; j < _rect._bottom; j++)
-		Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_White, Sort::Floor);
+	{
+		if(_isVisible)
+			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_White, Sort::Floor);
+		else
+			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_GRAY, Sort::Floor);
+	}
+		
 	///
 
 	for (size_t i = 0; i < _walls.size(); i++)

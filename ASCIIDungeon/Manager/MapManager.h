@@ -23,6 +23,8 @@ public:
 	int GetRoomIndex(const RoomInfo* const info) const;
 	bool FindDoorPosition(const RoomInfo* const parentA, const RoomInfo* const parentB, Craft::Vector2& outPos) const;
 
+	void RevealRoom(const Craft::Vector2& pos);
+
 	inline const std::vector<Door>& GetDoors() const { return _doors; }
 	inline std::weak_ptr<Room> const GetRoom(int index) const { return _rooms[index]; }
 
