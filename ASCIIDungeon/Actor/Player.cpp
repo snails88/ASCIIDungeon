@@ -132,6 +132,9 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 
 	int goalIndex = MapManager::Get().GetRoomIndex(goalRoom.first);
 
+	if (goalIndex < 0)
+		return;
+
 	if (AStar::Get().IsBlocked(cursorPos, MapManager::Get().GetRoom(goalIndex).lock()->GetWalls()))
 		return;
 

@@ -13,7 +13,6 @@ private:
 	struct Node
 	{
 		Vector2 _position;
-		// 대각선 비용도 1이라 int여도 상관없지만 추후 확장성 고려해서 float
 		float _gCost = 0.f;
 		float _hCost = 0.f;
 
