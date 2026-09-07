@@ -4,6 +4,7 @@
 #include <Actor/Player.h>
 #include <Actor/Cursor.h>
 #include <Input/Input.h>
+#include <Manager/MapManager.h>
 
 using namespace Craft;
 
@@ -31,6 +32,12 @@ void InputManager::Tick(float deltaTime)
 	if (Input::Get().GetKeyDown(VK_ESCAPE))
 	{
 		_game->ToggleMenu();
+	}
+
+	if (Input::Get().GetKeyDown('D'))
+	{
+		bool debugMode = MapManager::Get().IsDebugMode() ? false : true;
+		MapManager::Get().SetDebugMode(debugMode);
 	}
 
 	Vector2 dir = Vector2::Zero;

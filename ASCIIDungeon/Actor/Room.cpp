@@ -93,7 +93,7 @@ void Room::Draw()
 	{
 		if(_isVisible)
 			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_White, Sort::Floor);
-		else if(_visited)
+		else if(_visited || MapManager::Get().IsDebugMode())
 			Renderer::Get().Submit(str, Vector2(_rect._left + 1, j), Color::B_Gray, Sort::Floor);
 	}
 		
@@ -104,7 +104,7 @@ void Room::Draw()
 
 	for (size_t i = 0; i < _doors.size(); i++)
 	{
-		if(_visited)
+		if(_visited || MapManager::Get().IsDebugMode())
 			Renderer::Get().Submit(" ", _doors[i], Color::B_Yellow, Sort::SortingOrder::Door);
 	}
 		

@@ -71,7 +71,7 @@ bool Dijkstra::FindRoute(RoomInfo*& entrance, std::pair<RoomInfo*, RoomInfo*>& e
             {
                 std::weak_ptr<Room> r = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(room));
 
-                if (!r.lock()->IsVisited())
+                if (!r.lock()->IsVisited() && !MapManager::Get().IsDebugMode())
                     continue;
             }
 

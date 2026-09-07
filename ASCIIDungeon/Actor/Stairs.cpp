@@ -1,6 +1,7 @@
 #include "Stairs.h"
 #include <Define.h>
 #include <Math/Color.h>
+#include <Manager/MapManager.h>
 
 using namespace Craft;
 
@@ -22,7 +23,7 @@ void Stairs::Tick(float deltaTime)
 
 void Stairs::Draw()
 {
-	if (!_visited)
+	if (!_visited && !MapManager::Get().IsDebugMode())
 		return;
 	super::Draw();
 }

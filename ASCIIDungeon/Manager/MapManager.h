@@ -32,6 +32,9 @@ public:
 
 	static MapManager& Get();
 
+	inline void SetDebugMode(bool debugMode) { _debugMode = debugMode; }
+	inline bool IsDebugMode() const { return _debugMode; }
+
 private:
 private:	// 맵 생성 관련 함수들
 	void Split(BSPNode<Rect>& parent);
@@ -49,5 +52,8 @@ private:
 	std::vector<RoomInfo*> _connectedRooms;		// 연결된 방 정보들
 	std::vector<std::weak_ptr<Room>> _rooms;	// 위 정보로 생성한 방 인스턴스들
 	std::vector<Door> _doors;
+
+	// 임시로 여기에 둠
+	bool _debugMode = false;
 };
 

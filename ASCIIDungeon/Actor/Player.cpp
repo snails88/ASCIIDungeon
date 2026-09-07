@@ -8,6 +8,7 @@
 #include <Pathfind/AStar.h>
 #include <Manager/MapManager.h>
 #include <Manager/TurnManager.h>
+#include <Render/Renderer.h>
 
 using namespace Craft;
 
@@ -64,10 +65,30 @@ void Player::Tick(float deltaTime)
 void Player::Draw()
 {
 	super::Draw();
+
+	if (MapManager::Get().IsDebugMode() && !_path.empty())
+	{
+		for (size_t i = 0; i < _path.size(); i++)
+		{
+			Renderer::Get().Submit("*", _path[i], Color::Green | Color::B_BrightWhite, Sort::SortingOrder::Visualize);
+		}
+	}
 }
 
 void Player::Move(const Craft::Vector2& pos)
 {
+	if (_move)
+	{
+		StopMove();
+		return;
+	}
+
+	if (MapManager::Get().IsDebugMode() && !_path.empty() && _path.back() == pos)
+	{
+		_move = true;
+		return;
+	}
+
 	std::pair<RoomInfo*, RoomInfo*> info = MapManager::Get().FindRoomInfo(pos);
 
 	bool visited1 = false, visited2 = false;
@@ -77,11 +98,13 @@ void Player::Move(const Craft::Vector2& pos)
 	if (info.second)
 		visited2 = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info.second)).lock()->IsVisited();
 
-	if (!visited1 && !visited2)
+	if (!visited1 && !visited2 && !MapManager::Get().IsDebugMode())
 		return;
 
-	_move = true;
 	RequestPathFind(pos);
+
+	if (!MapManager::Get().IsDebugMode())
+		_move = true;
 
 	// 현재위치부터라 하나빼줌
 	if (!_path.empty())
