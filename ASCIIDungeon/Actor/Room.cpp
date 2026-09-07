@@ -53,7 +53,8 @@ Room::Room(const Rect& rect)
 		for (size_t i = 0; i < doors.size(); i++)
 		{
 			tmp.clear();
-			AStar::Get().FindPath(doors[i], center, _rect, _walls, tmp, false);
+			if (!AStar::Get().FindPath(doors[i], center, _rect, _walls, tmp, false))
+				return;
 			path.insert(path.end(), tmp.begin(), tmp.end());
 		}
 		
@@ -145,19 +146,25 @@ void Room::SetVisible(bool visible)
 	{
 		Visit();
 		
-		auto iter = _actors.begin();
-		while (iter != _actors.end())
-		{
-			size_t type = iter->lock()->GetType();
-
-			if (type == Stairs::TypeId())
-			{
-				Cast<Stairs>(iter->lock())->Visit();
-			}
-
-			++iter;
-		}
+		if (!_stairs.expired())
+			_stairs.lock()->Visit();
 	}
 
 	_isVisible = visible;
+}
+
+bool Room::IsOccupied(const Vector2& pos) const
+{
+	auto iter = _actors.begin();
+
+	while (iter != _actors.end())
+	{
+		if (iter->lock()->GetPosition() == pos)
+			return true;
+
+		++iter;
+	}
+	
+	return false;
+
 }

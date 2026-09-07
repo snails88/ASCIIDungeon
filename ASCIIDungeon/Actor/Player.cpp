@@ -18,6 +18,7 @@ Player::Player(const Vector2& pos)
 	color = Color::B_White | Color::Red;
 	sortingOrder = Sort::Player;
 	_move = false;
+	_attack = false;
 }
 
 void Player::BeginPlay()
@@ -29,12 +30,18 @@ void Player::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 
-	if (TurnManager::Get().IsPlayerTurn())
+	if (TurnManager::Get().GetCurrentTurn() == TurnManager::Turn::PlayerTurn)
 	{
 		if (_move)
 		{
 			if (!_path.empty())
 			{
+				if (_attack && _path.size() == 1)
+				{
+					_move = false;
+					return;
+				}
+
 				Vector2 nextPos = _path.front();
 				_path.pop_front();
 
@@ -45,6 +52,9 @@ void Player::Tick(float deltaTime)
 					_path.pop_front();
 				}
 				
+				if (nextPos == position)
+					return;
+
 				position = nextPos;
 
 				std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
@@ -58,8 +68,46 @@ void Player::Tick(float deltaTime)
 			else
 				_move = false;
 		}
-	}
 
+		if (_attack && !_move && _path.size() == 1)
+		{
+			Vector2 targetPos = _path.front();
+			_path.pop_front();
+
+			const std::pair<RoomInfo*, RoomInfo*>& info = MapManager::Get().FindRoomInfo(position);
+
+			int index = -1;
+			
+			for (RoomInfo* ri : { info.first, info.second })
+			{
+				if (ri)
+				{
+					index = MapManager::Get().GetRoomIndex(ri);
+
+					std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(index).lock()->GetActors();
+
+					auto iter = actors.begin();
+
+					while (iter != actors.end())
+					{
+						std::shared_ptr<Actor> actor = iter->lock();
+
+						if (!actor)
+							actors.erase(iter);
+
+						if (actor && actor->GetPosition() == targetPos)
+						{
+							actor->Destroy();
+							actors.erase(iter);
+							break;
+						}
+
+						++iter;
+					}
+				}
+			}
+		}
+	}
 }
 
 void Player::Draw()
@@ -89,19 +137,47 @@ void Player::Move(const Craft::Vector2& pos)
 		return;
 	}
 
-	std::pair<RoomInfo*, RoomInfo*> info = MapManager::Get().FindRoomInfo(pos);
+	const std::pair<RoomInfo*, RoomInfo*>& info = MapManager::Get().FindRoomInfo(pos);
 
 	bool visited1 = false, visited2 = false;
+	int index1 = -1, index2 = -1;
 
 	if (info.first)
-		visited1 = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info.first)).lock()->IsVisited();
+	{
+		index1 = MapManager::Get().GetRoomIndex(info.first);
+		visited1 = MapManager::Get().GetRoom(index1).lock()->IsVisited();
+	}
+		
 	if (info.second)
-		visited2 = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info.second)).lock()->IsVisited();
-
+	{
+		index2 = MapManager::Get().GetRoomIndex(info.second);
+		visited2 = MapManager::Get().GetRoom(index2).lock()->IsVisited();
+	}
+		
 	if (!visited1 && !visited2 && !MapManager::Get().IsDebugMode())
 		return;
 
-	RequestPathFind(pos);
+	_attack = false;
+
+	if (info.first)
+	{
+		const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(index1).lock()->GetActors();
+
+		auto iter = actors.begin();
+
+		while (iter != actors.end())
+		{
+			if (iter->lock()->GetPosition() == pos)
+			{
+				_attack = true;
+				break;
+			}
+
+			++iter;
+		}
+	}
+
+	RequestPathFind(pos, _attack);
 
 	if (!MapManager::Get().IsDebugMode())
 		_move = true;
@@ -117,7 +193,7 @@ void Player::StopMove()
 	_move = false;
 }
 
-void Player::RequestPathFind(const Craft::Vector2& cursorPos)
+void Player::RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack)
 {
 	_path.clear();
 
@@ -148,9 +224,28 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 			{
 				RoomInfo* info = MapManager::Get().FindRoomInfo(position).first;
 				Rect rect = info->_rect;
-				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
+				std::vector<Vector2> obstacles;
 
-				AStar::Get().FindPath(position, cursorPos, rect, walls, _path);
+				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
+				const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
+
+				obstacles.reserve(walls.size() + actors.size());
+				obstacles.insert(obstacles.end(), walls.begin(), walls.end());
+
+				auto iter = actors.begin();
+				while (iter != actors.end())
+				{
+					if (isAttack && iter->lock()->GetPosition() == cursorPos)
+					{
+						++iter;
+						continue;
+					}
+					obstacles.emplace_back(iter->lock()->GetPosition());
+					++iter;
+				}
+
+				if (!AStar::Get().FindPath(position, cursorPos, rect, obstacles, _path))
+					return;
 			}
 			else
 			{
@@ -159,7 +254,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 				{
 					std::deque<Vector2> tmp;
 					Vector2 doorPos;
-					std::pair<RoomInfo*, RoomInfo*> infos = MapManager::Get().FindRoomInfo(prevPos);
+					const std::pair<RoomInfo*, RoomInfo*>& infos = MapManager::Get().FindRoomInfo(prevPos);
 					RoomInfo* info = infos.first;
 
 					if (!info)
@@ -178,10 +273,32 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 					}
 
 					Rect rect = info->_rect;
+
+					std::vector<Vector2> obstacles;
+
 					const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
+					const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
+
+					obstacles.reserve(walls.size() + actors.size());
+					obstacles.insert(obstacles.end(), walls.begin(), walls.end());
+
+					auto iter = actors.begin();
+					while (iter != actors.end())
+					{
+						if (isAttack && iter->lock()->GetPosition() == cursorPos)
+						{
+							++iter;
+							continue;
+						}
+						obstacles.emplace_back(iter->lock()->GetPosition());
+						++iter;
+					}
 
 					MapManager::Get().FindDoorPosition(route[i], route[i + 1], doorPos);
-					AStar::Get().FindPath(prevPos, doorPos, rect, walls, tmp);
+
+					if (!AStar::Get().FindPath(prevPos, doorPos, rect, obstacles, tmp))
+						return;
+
 					_path.insert(_path.end(), tmp.begin(), tmp.end());
 					prevPos = doorPos;
 				}
@@ -190,7 +307,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 
 				Vector2 currentPos = _path[_path.size() - 1];
 				std::deque<Vector2> tmp;
-				std::pair<RoomInfo*, RoomInfo*> infos = MapManager::Get().FindRoomInfo(currentPos);
+				const std::pair<RoomInfo*, RoomInfo*>& infos = MapManager::Get().FindRoomInfo(currentPos);
 				RoomInfo* info = infos.first;
 				if (infos.second)
 				{
@@ -204,8 +321,30 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos)
 				}
 
 				Rect rect = info->_rect;
+
+				std::vector<Vector2> obstacles;
+
 				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
-				AStar::Get().FindPath(currentPos, cursorPos, rect, walls, tmp);
+				const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
+
+				obstacles.reserve(walls.size() + actors.size());
+				obstacles.insert(obstacles.end(), walls.begin(), walls.end());
+
+				auto iter = actors.begin();
+				while (iter != actors.end())
+				{
+					if (isAttack && iter->lock()->GetPosition() == cursorPos)
+					{
+						++iter;
+						continue;
+					}
+					obstacles.emplace_back(iter->lock()->GetPosition());
+					++iter;
+				}
+
+				if (!AStar::Get().FindPath(currentPos, cursorPos, rect, obstacles, tmp))
+					return;
+
 				_path.insert(_path.end(), tmp.begin(), tmp.end());
 			}
 		}

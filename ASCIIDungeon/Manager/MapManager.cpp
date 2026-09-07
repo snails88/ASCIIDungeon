@@ -6,6 +6,7 @@
 #include <Actor/Player.h>
 #include <Actor/Cursor.h>
 #include <Actor/Stairs.h>
+#include <Actor/Enemy.h>
 #include <Level/Level.h>
 #include <Game/Game.h>
 #include <Pathfind/Dijkstra.h>
@@ -61,7 +62,7 @@ void MapManager::BeginPlay()
 
 	std::shared_ptr<Stairs> stairs = level.lock()->SpawnActor<Stairs>(Vector2(startPosX, startPosY));
 
-	_rooms[GetRoomIndex(FindRoomInfo(stairs->GetPosition()).first)].lock()->AddActor(stairs);
+	_rooms[GetRoomIndex(FindRoomInfo(stairs->GetPosition()).first)].lock()->SetStairs(stairs);
 
 	for (size_t i = 0; i < _doors.size(); i++)
 	{
@@ -76,6 +77,8 @@ void MapManager::BeginPlay()
 	}
 
 	int playerRoomIndex = GetRoomIndex(FindRoomInfo(player->GetPosition()).first);
+
+	SpawnEnemies();
 
 	_rooms[playerRoomIndex].lock()->SetVisible(true);
 }
@@ -142,6 +145,33 @@ void MapManager::RevealRoom(const Craft::Vector2& pos)
 
 	if(info.second)
 		_rooms[GetRoomIndex(info.second)].lock()->SetVisible(true);
+}
+
+void MapManager::SpawnEnemies()
+{
+	Game& engine = static_cast<Game&>(Engine::Get());
+	BYTE enemyCount = 0;
+
+	while (enemyCount != ENEMY_COUNT)
+	{
+		int randomIndex = Util::RandomRange(0, _connectedRooms.size() - 1);
+
+		if (_connectedRooms[randomIndex]->_type == RoomInfo::RoomType::STANDARD)
+		{
+			// 벽 제외한 칸 중에 스폰
+			int randX = Util::RandomRange(_connectedRooms[randomIndex]->_rect._left + 1, _connectedRooms[randomIndex]->_rect._right - 1);
+			int randY = Util::RandomRange(_connectedRooms[randomIndex]->_rect._top + 1, _connectedRooms[randomIndex]->_rect._bottom - 1);
+			Vector2 pos = Vector2(randX, randY);
+
+			if (_rooms[randomIndex].lock()->IsOccupied(pos))
+				continue;
+
+			std::weak_ptr<Level> level = engine.GetLevel();
+			std::shared_ptr enemy = level.lock()->SpawnActor<Enemy>(pos);
+			_rooms[randomIndex].lock()->AddActor(enemy);
+			++enemyCount;
+		}
+	}
 }
 
 void MapManager::Clear()

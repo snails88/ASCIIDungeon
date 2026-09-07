@@ -18,10 +18,11 @@ public:
 
 	void Move(const Craft::Vector2& pos);
 	void StopMove();
-	void RequestPathFind(const Craft::Vector2& cursorPos);
+	void RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack = false);
 
 private:
 	std::deque<Craft::Vector2> _path;
 	bool _move;
+	bool _attack;
 };
 

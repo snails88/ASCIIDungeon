@@ -17,7 +17,7 @@ public:
 	void Tick(float deltaTime);
 
 	inline void SetTurnType(Turn type) { _turn = type; }
-	inline bool IsPlayerTurn() const { return _turn == Turn::PlayerTurn; }
+	inline Turn GetCurrentTurn() const { return _turn; }
 
 	void Clear();
 
