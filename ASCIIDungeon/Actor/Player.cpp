@@ -67,7 +67,7 @@ void Player::Tick(float deltaTime)
 
 					int index = MapManager::Get().GetRoomIndex(info);
 
-					if (index > 0)
+					if (index >= 0)
 					{
 						std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
 
@@ -91,14 +91,13 @@ void Player::Tick(float deltaTime)
 								if (!_path.empty())
 								{
 									Vector2 newGoalPos = _path.back();
-
 									_path.clear();
-
 									RequestPathFind(newGoalPos, _attack);
-									return;
 								}
 								else
 									_move = false;
+								
+								return;
 							}
 
 							++iter;
