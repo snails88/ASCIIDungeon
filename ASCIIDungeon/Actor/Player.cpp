@@ -3,6 +3,7 @@
 #include <Math/Color.h>
 #include <Actor/Room.h>
 #include <Actor/Cursor.h>
+#include <Actor/Stairs.h>
 #include <Level/GameLevel.h>
 #include <Pathfind/Dijkstra.h>
 #include <Pathfind/AStar.h>
@@ -33,6 +34,7 @@ void Player::Tick(float deltaTime)
 
 	if (TurnManager::Get().GetCurrentTurn() == TurnManager::Turn::PlayerTurn)
 	{
+		std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
 		if (_move)
 		{
 			if (!_path.empty())
@@ -86,12 +88,17 @@ void Player::Tick(float deltaTime)
 
 							if (enemy->GetPosition() == nextPos)
 							{
-								Vector2 newGoalPos = _path.back();
+								if (!_path.empty())
+								{
+									Vector2 newGoalPos = _path.back();
 
-								_path.clear();
+									_path.clear();
 
-								RequestPathFind(newGoalPos, _attack);
-								return;
+									RequestPathFind(newGoalPos, _attack);
+									return;
+								}
+								else
+									_move = false;
 							}
 
 							++iter;
@@ -101,6 +108,14 @@ void Player::Tick(float deltaTime)
 				}
 
 				position = nextPos;
+
+				std::shared_ptr<Stairs> stairs = level->FindActor<Stairs>();
+
+				if (position == stairs->GetPosition())
+				{
+					stairs->Reset();
+					return;
+				}
 
 				std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
 
@@ -130,7 +145,7 @@ void Player::Tick(float deltaTime)
 				{
 					index = MapManager::Get().GetRoomIndex(ri);
 
-					std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+					
 					const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
 
 					auto iter = enemies.begin();

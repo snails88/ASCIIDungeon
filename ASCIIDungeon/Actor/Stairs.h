@@ -12,6 +12,7 @@ public:
 	virtual void Tick(float deltaTime) override;
 	virtual void Draw() override;
 
+	void Reset();
 	inline void Visit() { _visited = true; }
 private:
 	bool _visited = false;

@@ -21,6 +21,11 @@ public:
 	inline const bool IsSleep() const { return _isSleep; }
 
 private:
+private:
+	RoomInfo* ResolveRoomOnRoute(const std::pair<RoomInfo*, RoomInfo*>& infos, const std::vector<RoomInfo*>& route);
+	void BuildObstacles(const RoomInfo* const info, std::vector<Craft::Vector2>& outObstacles, const Craft::Vector2& pos);
+
+private:
 	bool _isSleep = true;
 	std::pair<RoomInfo*, RoomInfo*> _currentRoom;
 	std::weak_ptr<Player> _player;
