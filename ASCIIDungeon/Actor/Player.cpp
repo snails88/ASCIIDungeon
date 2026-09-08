@@ -32,144 +32,153 @@ void Player::Tick(float deltaTime)
 {
 	super::Tick(deltaTime);
 
-	if (TurnManager::Get().GetCurrentTurn() == TurnManager::Turn::PlayerTurn)
+	if (TurnManager::Get().GetCurrentTurn() != TurnManager::Turn::PlayerTurn)
+		return;
+
+	if (_move)
 	{
-		std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
-		if (_move)
+		HandleMove();
+		return;
+	}
+
+	if (_attack && !_move && _path.size() == 1)
+	{
+		HandleAttack();
+	}
+}
+
+void Player::HandleMove()
+{
+	std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+
+	if (_path.empty())
+	{
+		_move = false;
+		return;
+	}
+
+	if (_attack && _path.size() == 1)
+	{
+		_move = false;
+		return;
+	}
+
+	Vector2 nextPos = _path.front();
+	_path.pop_front();
+
+	// 문은 방끼리 겹쳐있어서 같은경로 두번씩 저장됨
+	if (!_path.empty() && nextPos == _path.front())
+	{
+		nextPos = _path.front();
+		_path.pop_front();
+	}
+
+	if (nextPos == position)
+		return;
+
+	auto infos = MapManager::Get().FindRoomInfo(nextPos);
+
+	for (RoomInfo* info : { infos.first, infos.second })
+	{
+		if (!info)
+			break;
+
+		int index = MapManager::Get().GetRoomIndex(info);
+
+		if (index > 0)
 		{
-			if (!_path.empty())
+			const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
+			auto iter = enemies.begin();
+
+			while (iter != enemies.end())
 			{
-				if (_attack && _path.size() == 1)
+				std::shared_ptr<Enemy> enemy = iter->lock();
+
+				if (!enemy)
 				{
-					_move = false;
-					return;
+					level->EraseEnemy(enemy);
+					iter = enemies.begin();
+					continue;
 				}
 
-				Vector2 nextPos = _path.front();
-				_path.pop_front();
-
-				// 문은 방끼리 겹쳐있어서 같은경로 두번씩 저장됨
-				if (!_path.empty() && nextPos == _path.front())
+				if (enemy->GetPosition() == nextPos)
 				{
-					nextPos = _path.front();
-					_path.pop_front();
-				}
-				
-				if (nextPos == position)
-					return;
-
-				auto infos = MapManager::Get().FindRoomInfo(nextPos);
-
-				for (RoomInfo* info : { infos.first, infos.second })
-				{
-					if (!info)
-						break;
-
-					int index = MapManager::Get().GetRoomIndex(info);
-
-					if (index >= 0)
+					if (!_path.empty())
 					{
-						std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
-
-						const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
-
-						auto iter = enemies.begin();
-
-						while (iter != enemies.end())
-						{
-							std::shared_ptr<Enemy> enemy = iter->lock();
-
-							if (!enemy)
-							{
-								level->EraseEnemy(enemy);
-								iter = enemies.begin();
-								continue;
-							}
-
-							if (enemy->GetPosition() == nextPos)
-							{
-								if (!_path.empty())
-								{
-									Vector2 newGoalPos = _path.back();
-									_path.clear();
-									RequestPathFind(newGoalPos, _attack);
-								}
-								else
-									_move = false;
-								
-								return;
-							}
-
-							++iter;
-						}
-						
+						Vector2 newGoalPos = _path.back();
+						_path.clear();
+						RequestPathFind(newGoalPos, _attack);
 					}
-				}
-
-				position = nextPos;
-
-				std::shared_ptr<Stairs> stairs = level->FindActor<Stairs>();
-
-				if (position == stairs->GetPosition())
-				{
-					stairs->Reset();
+					else
+					{
+						_move = false;
+					}
 					return;
 				}
-
-				std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
-
-				if (cursor->GetPosition() == position)
-					cursor->ChangeImage("P", Color::B_Cyan | Color::Magenta);
-
-				MapManager::Get().RevealRoom(position);
-				TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
-				return;
+				++iter;
 			}
-			else
-				_move = false;
 		}
+	}
 
-		if (_attack && !_move && _path.size() == 1)
+	position = nextPos;
+
+	std::shared_ptr<Stairs> stairs = level->FindActor<Stairs>();
+
+	if (position == stairs->GetPosition())
+	{
+		stairs->Reset();
+		return;
+	}
+
+	std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
+
+	if (cursor->GetPosition() == position)
+		cursor->ChangeImage("P", Color::B_Cyan | Color::Magenta);
+
+	MapManager::Get().RevealRoom(position);
+	TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
+}
+
+void Player::HandleAttack()
+{
+	std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+
+	Vector2 targetPos = _path.front();
+	_path.pop_front();
+
+	const std::pair<RoomInfo*, RoomInfo*>& info = MapManager::Get().FindRoomInfo(position);
+
+	int index = -1;
+
+	for (RoomInfo* ri : { info.first, info.second })
+	{
+		if (ri)
 		{
-			Vector2 targetPos = _path.front();
-			_path.pop_front();
+			index = MapManager::Get().GetRoomIndex(ri);
 
-			const std::pair<RoomInfo*, RoomInfo*>& info = MapManager::Get().FindRoomInfo(position);
+			const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
 
-			int index = -1;
-			
-			for (RoomInfo* ri : { info.first, info.second })
+			auto iter = enemies.begin();
+
+			while (iter != enemies.end())
 			{
-				if (ri)
+				std::shared_ptr<Enemy> enemy = iter->lock();
+
+				if (!enemy)
 				{
-					index = MapManager::Get().GetRoomIndex(ri);
-
-					
-					const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
-
-					auto iter = enemies.begin();
-
-					while (iter != enemies.end())
-					{
-						std::shared_ptr<Enemy> enemy = iter->lock();
-
-						if (!enemy)
-						{
-							level->EraseEnemy(enemy);
-							iter = enemies.begin();
-						}
-
-						if (enemy && enemy->GetPosition() == targetPos)
-						{
-							level->EraseEnemy(enemy);
-							enemy->Destroy();
-							TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
-							break;
-						}
-
-						++iter;
-					}
+					level->EraseEnemy(enemy);
+					iter = enemies.begin();
 				}
+
+				if (enemy && enemy->GetPosition() == targetPos)
+				{
+					level->EraseEnemy(enemy);
+					enemy->Destroy();
+					TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
+					break;
+				}
+
+				++iter;
 			}
 		}
 	}

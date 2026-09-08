@@ -22,6 +22,8 @@ public:
 	void RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack = false);
 	
 private:
+	void HandleMove();
+	void HandleAttack();
 	RoomInfo* ResolveRoomOnRoute(const std::pair<RoomInfo*, RoomInfo*>& infos, const std::vector<RoomInfo*>& route);
 	void BuildObstacles(const RoomInfo* const info, std::vector<Craft::Vector2>& outObstacles, bool isAttack, const Craft::Vector2& cursorPos);
 
