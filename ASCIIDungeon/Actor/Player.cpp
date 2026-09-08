@@ -3,12 +3,13 @@
 #include <Math/Color.h>
 #include <Actor/Room.h>
 #include <Actor/Cursor.h>
-#include <Level/Level.h>
+#include <Level/GameLevel.h>
 #include <Pathfind/Dijkstra.h>
 #include <Pathfind/AStar.h>
 #include <Manager/MapManager.h>
 #include <Manager/TurnManager.h>
 #include <Render/Renderer.h>
+#include <Engine/Engine.h>
 
 using namespace Craft;
 
@@ -55,6 +56,50 @@ void Player::Tick(float deltaTime)
 				if (nextPos == position)
 					return;
 
+				auto infos = MapManager::Get().FindRoomInfo(nextPos);
+
+				for (RoomInfo* info : { infos.first, infos.second })
+				{
+					if (!info)
+						break;
+
+					int index = MapManager::Get().GetRoomIndex(info);
+
+					if (index > 0)
+					{
+						std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+
+						const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
+
+						auto iter = enemies.begin();
+
+						while (iter != enemies.end())
+						{
+							std::shared_ptr<Enemy> enemy = iter->lock();
+
+							if (!enemy)
+							{
+								level->EraseEnemy(enemy);
+								iter = enemies.begin();
+								continue;
+							}
+
+							if (enemy->GetPosition() == nextPos)
+							{
+								Vector2 newGoalPos = _path.back();
+
+								_path.clear();
+
+								RequestPathFind(newGoalPos, _attack);
+								return;
+							}
+
+							++iter;
+						}
+						
+					}
+				}
+
 				position = nextPos;
 
 				std::shared_ptr<Cursor> cursor = GetOwner()->FindActor<Cursor>();
@@ -64,6 +109,7 @@ void Player::Tick(float deltaTime)
 
 				MapManager::Get().RevealRoom(position);
 				TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
+				return;
 			}
 			else
 				_move = false;
@@ -84,21 +130,26 @@ void Player::Tick(float deltaTime)
 				{
 					index = MapManager::Get().GetRoomIndex(ri);
 
-					std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(index).lock()->GetActors();
+					std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+					const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
 
-					auto iter = actors.begin();
+					auto iter = enemies.begin();
 
-					while (iter != actors.end())
+					while (iter != enemies.end())
 					{
-						std::shared_ptr<Actor> actor = iter->lock();
+						std::shared_ptr<Enemy> enemy = iter->lock();
 
-						if (!actor)
-							actors.erase(iter);
-
-						if (actor && actor->GetPosition() == targetPos)
+						if (!enemy)
 						{
-							actor->Destroy();
-							actors.erase(iter);
+							level->EraseEnemy(enemy);
+							iter = enemies.begin();
+						}
+
+						if (enemy && enemy->GetPosition() == targetPos)
+						{
+							level->EraseEnemy(enemy);
+							enemy->Destroy();
+							TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
 							break;
 						}
 
@@ -161,13 +212,24 @@ void Player::Move(const Craft::Vector2& pos)
 
 	if (info.first)
 	{
-		const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(index1).lock()->GetActors();
+		std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
 
-		auto iter = actors.begin();
+		const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
 
-		while (iter != actors.end())
+		auto iter = enemies.begin();
+
+		while (iter != enemies.end())
 		{
-			if (iter->lock()->GetPosition() == pos)
+			std::shared_ptr<Enemy> enemy = iter->lock();
+
+			if (!enemy)
+			{
+				level->EraseEnemy(enemy);
+				iter = enemies.begin();
+				continue;
+			}
+			
+			if (enemy->GetPosition() == pos)
 			{
 				_attack = true;
 				break;
@@ -225,24 +287,7 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack)
 				RoomInfo* info = MapManager::Get().FindRoomInfo(position).first;
 				Rect rect = info->_rect;
 				std::vector<Vector2> obstacles;
-
-				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
-				const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
-
-				obstacles.reserve(walls.size() + actors.size());
-				obstacles.insert(obstacles.end(), walls.begin(), walls.end());
-
-				auto iter = actors.begin();
-				while (iter != actors.end())
-				{
-					if (isAttack && iter->lock()->GetPosition() == cursorPos)
-					{
-						++iter;
-						continue;
-					}
-					obstacles.emplace_back(iter->lock()->GetPosition());
-					++iter;
-				}
+				BuildObstacles(info, obstacles, isAttack, cursorPos);
 
 				if (!AStar::Get().FindPath(position, cursorPos, rect, obstacles, _path))
 					return;
@@ -261,38 +306,13 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack)
 						return;
 
 					// 문이라 방 두개 검출되면 루트상 마지막거
-					if (infos.second)
-					{
-						for (size_t i = 0; i < route.size(); i++)
-						{
-							if (route[i] == infos.first)
-								info = infos.first;
-							else if (route[i] == infos.second)
-								info = infos.second;
-						}
-					}
+					info = ResolveRoomOnRoute(infos, route);
 
 					Rect rect = info->_rect;
 
 					std::vector<Vector2> obstacles;
 
-					const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
-					const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
-
-					obstacles.reserve(walls.size() + actors.size());
-					obstacles.insert(obstacles.end(), walls.begin(), walls.end());
-
-					auto iter = actors.begin();
-					while (iter != actors.end())
-					{
-						if (isAttack && iter->lock()->GetPosition() == cursorPos)
-						{
-							++iter;
-							continue;
-						}
-						obstacles.emplace_back(iter->lock()->GetPosition());
-						++iter;
-					}
+					BuildObstacles(info, obstacles, isAttack, cursorPos);
 
 					MapManager::Get().FindDoorPosition(route[i], route[i + 1], doorPos);
 
@@ -309,38 +329,17 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack)
 				std::deque<Vector2> tmp;
 				const std::pair<RoomInfo*, RoomInfo*>& infos = MapManager::Get().FindRoomInfo(currentPos);
 				RoomInfo* info = infos.first;
-				if (infos.second)
-				{
-					for (size_t i = 0; i < route.size(); i++)
-					{
-						if (route[i] == infos.first)
-							info = infos.first;
-						else if (route[i] == infos.second)
-							info = infos.second;
-					}
-				}
+				
+				if (!info)
+					return;
+
+				info = ResolveRoomOnRoute(infos, route);
 
 				Rect rect = info->_rect;
 
 				std::vector<Vector2> obstacles;
 
-				const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
-				const std::list<std::weak_ptr<Actor>>& actors = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetActors();
-
-				obstacles.reserve(walls.size() + actors.size());
-				obstacles.insert(obstacles.end(), walls.begin(), walls.end());
-
-				auto iter = actors.begin();
-				while (iter != actors.end())
-				{
-					if (isAttack && iter->lock()->GetPosition() == cursorPos)
-					{
-						++iter;
-						continue;
-					}
-					obstacles.emplace_back(iter->lock()->GetPosition());
-					++iter;
-				}
+				BuildObstacles(info, obstacles, isAttack, cursorPos);
 
 				if (!AStar::Get().FindPath(currentPos, cursorPos, rect, obstacles, tmp))
 					return;
@@ -348,5 +347,56 @@ void Player::RequestPathFind(const Craft::Vector2& cursorPos, bool isAttack)
 				_path.insert(_path.end(), tmp.begin(), tmp.end());
 			}
 		}
+	}
+}
+
+RoomInfo* Player::ResolveRoomOnRoute(const std::pair<RoomInfo*, RoomInfo*>& infos, const std::vector<RoomInfo*>& route)
+{
+	RoomInfo* info = infos.first;
+
+	if (infos.second)
+	{
+		for (size_t i = 0; i < route.size(); i++)
+		{
+			if (route[i] == infos.first)
+				info = infos.first;
+			else if (route[i] == infos.second)
+				info = infos.second;
+		}
+	}
+
+	return info;
+}
+
+void Player::BuildObstacles(const RoomInfo* const info, std::vector<Craft::Vector2>& outObstacles, bool isAttack, const Craft::Vector2& cursorPos)
+{
+	const std::vector<Vector2>& walls = MapManager::Get().GetRoom(MapManager::Get().GetRoomIndex(info)).lock()->GetWalls();
+
+	std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+	const std::list<std::weak_ptr<Enemy>>& enemies = level->GetEnemies();
+
+	outObstacles.reserve(walls.size() + enemies.size());
+	outObstacles.insert(outObstacles.end(), walls.begin(), walls.end());
+
+	auto iter = enemies.begin();
+	while (iter != enemies.end())
+	{
+		std::shared_ptr<Enemy> enemy = iter->lock();
+		if (enemy && isAttack && enemy->GetPosition() == cursorPos)
+		{
+			++iter;
+			continue;
+		}
+
+		if (enemy->GetPosition().x < info->_rect._left || enemy->GetPosition().x > info->_rect._right || 
+			enemy->GetPosition().y < info->_rect._top || enemy->GetPosition().y > info->_rect._bottom)
+		{
+			++iter;
+			continue;
+		}
+
+
+		outObstacles.emplace_back(enemy->GetPosition());
+		++iter;
 	}
 }

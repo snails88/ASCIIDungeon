@@ -5,6 +5,7 @@
 #include <Actor/Cursor.h>
 #include <Input/Input.h>
 #include <Manager/MapManager.h>
+#include <Manager/TurnManager.h>
 
 using namespace Craft;
 
@@ -79,6 +80,12 @@ void InputManager::Tick(float deltaTime)
 
 	if (Input::Get().GetKeyDown(VK_RETURN))
 	{
+		if (_player->GetPosition() == _cursor->GetPosition())
+		{
+			TurnManager::Get().SetTurnType(TurnManager::Turn::EnemyTurn);
+			return;
+		}
+			
 		_player->Move(_cursor->GetPosition());
 	}
 

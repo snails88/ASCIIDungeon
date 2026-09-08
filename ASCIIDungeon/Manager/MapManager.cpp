@@ -1,4 +1,4 @@
-#include "MapManager.h"
+﻿#include "MapManager.h"
 #include <ETC/BSP.h>
 #include <Util/Util.h>
 #include <Define.h>
@@ -7,7 +7,7 @@
 #include <Actor/Cursor.h>
 #include <Actor/Stairs.h>
 #include <Actor/Enemy.h>
-#include <Level/Level.h>
+#include <Level/GameLevel.h>
 #include <Game/Game.h>
 #include <Pathfind/Dijkstra.h>
 
@@ -111,6 +111,9 @@ std::pair<RoomInfo*, RoomInfo*> const MapManager::FindRoomInfo(const Craft::Vect
 
 int MapManager::GetRoomIndex(const RoomInfo* const info) const
 {
+	if (!info)
+		return -1;
+
 	for (size_t i = 0; i < _connectedRooms.size(); i++)
 	{
 		if (info == _connectedRooms[i])
@@ -139,7 +142,10 @@ void MapManager::RevealRoom(const Craft::Vector2& pos)
 	std::pair<RoomInfo*, RoomInfo*> info = FindRoomInfo(pos);
 
 	for (size_t i = 0; i < _rooms.size(); i++)
-		_rooms[i].lock()->SetVisible(false);
+	{
+		std::shared_ptr<Room> room = _rooms[i].lock();
+		room->SetVisible(false);
+	}
 
 	_rooms[GetRoomIndex(info.first)].lock()->SetVisible(true);
 
@@ -150,6 +156,7 @@ void MapManager::RevealRoom(const Craft::Vector2& pos)
 void MapManager::SpawnEnemies()
 {
 	Game& engine = static_cast<Game&>(Engine::Get());
+	std::shared_ptr<GameLevel> level = Cast<GameLevel>(engine.GetLevel().lock());
 	BYTE enemyCount = 0;
 
 	while (enemyCount != ENEMY_COUNT)
@@ -163,12 +170,13 @@ void MapManager::SpawnEnemies()
 			int randY = Util::RandomRange(_connectedRooms[randomIndex]->_rect._top + 1, _connectedRooms[randomIndex]->_rect._bottom - 1);
 			Vector2 pos = Vector2(randX, randY);
 
-			if (_rooms[randomIndex].lock()->IsOccupied(pos))
+			if (level->IsOccupied(pos))
 				continue;
 
-			std::weak_ptr<Level> level = engine.GetLevel();
-			std::shared_ptr enemy = level.lock()->SpawnActor<Enemy>(pos);
-			_rooms[randomIndex].lock()->AddActor(enemy);
+			std::shared_ptr<GameLevel> level = Cast<GameLevel>(Engine::Get().GetLevel().lock());
+			std::shared_ptr<Enemy> enemy = level->SpawnActor<Enemy>(pos);
+			level->AddEnemy(enemy);
+			//_rooms[randomIndex].lock()->AddEnemy(enemy);
 			++enemyCount;
 		}
 	}
